@@ -21,5 +21,6 @@ Use this file to commit information clearly documenting your check-ins' content.
 
 ### Follow up Tasks
 
-1. Talk to TA about ideas
+1. Talk to TA about ideas and pick an idea that would match the scope.
 2. Look at libraries (that instructors will post on piazza about) which can provide the AST for a language. This is to decide which specific languages we can work on.
+3. Distribute TODOs between team members
