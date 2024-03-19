@@ -1,7 +1,6 @@
 package common.functions;
 
 import java.util.Set;
-import com.github.javaparser.ast.Node;
 
 /**
  * A FunctionContext corresponds to a single function that is Instrumentable.
