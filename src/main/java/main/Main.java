@@ -1,10 +1,12 @@
-import com.github.javaparser.ast.stmt.Statement;
+package main;
 import com.github.javaparser.utils.SourceRoot;
 import com.github.javaparser.ast.CompilationUnit;
 import java.nio.file.Paths;
 import java.util.List;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+
+import graph.CodeBlockNode;
+import graph.ControlFlowGraph;
+import parser.StatementVisitor;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,17 +22,11 @@ public class Main {
     }
     public static void analyze(SourceRoot sourceRoot) {
         List< CompilationUnit > cus = sourceRoot.getCompilationUnits();
-        System.out.println("aa");
+        CodeBlockNode root = new CodeBlockNode(null);
         for (CompilationUnit cu : cus) {
             StatementVisitor statementVisitor = new StatementVisitor();
-            statementVisitor.visit(cu, null);
+            statementVisitor.visit(cu, root);
         }
-    }
-    private static class StatementVisitor extends VoidVisitorAdapter<Void> {
-        @Override
-        public void visit(IfStmt n, Void arg) {
-            System.out.println("Found an if statement at " + n.getBegin().get().line);
-            super.visit(n, arg);
-        }
+        root.visualizer(0);
     }
 }
