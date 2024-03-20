@@ -2,29 +2,20 @@ package graph;
 
 import com.github.javaparser.ast.expr.Expression;
 
-public class ConditionalNode extends ControlFlowGraph {
+// This class represents a conditional node in the control flow graph
+public class ConditionalNode extends ControlFlowNode {
     private Expression condition;
-    private int lineNumbers;
     private CodeBlockNode trueBranch;
     private CodeBlockNode falseBranch;
 
-    public ConditionalNode(Expression condition, CodeBlockNode trueBranch, CodeBlockNode falseBranch, int lineNumbers) {
+    public ConditionalNode(Expression condition, CodeBlockNode trueBranch, CodeBlockNode falseBranch) {
         this.condition = condition;
         this.trueBranch = trueBranch;
         this.falseBranch = falseBranch;
-        this.lineNumbers = lineNumbers;
     }
 
-    public Expression getCondition() {
-        return condition;
-    }
-
-    public CodeBlockNode getTrueBranch() {
-        return trueBranch;
-    }
-
-    public CodeBlockNode getFalseBranch() {
-        return falseBranch;
+    private ControlFlowNode[] getNeighbors() {
+        return new ControlFlowNode[]{trueBranch, falseBranch};
     }
 
     public void setTrueBranch(CodeBlockNode trueBranch) {
@@ -35,19 +26,19 @@ public class ConditionalNode extends ControlFlowGraph {
         this.falseBranch = falseBranch;
     }
 
+    @Override
     public void visualizer(int depth) {
-        String padding = " ".repeat(depth * 4); // 4 spaces per depth level
+        String padding = " ".repeat(depth * 4);
+        System.out.println(padding + "Condition: - " + condition.toString() + " (line:" + condition.getBegin().get().line + ")");
 
-        System.out.println(padding + "Conditional Node: " + lineNumbers);
-
-        if (trueBranch != null) {
+        if (getNeighbors().length > 0) {
             System.out.println(padding + "  True branch execute:");
-            trueBranch.visualizer(depth + 1); // Increment depth for nested nodes
+            getNeighbors()[0].visualizer(depth + 1);
         }
 
-        if (falseBranch != null) {
+        if (getNeighbors().length > 1 && getNeighbors()[1] != null) {
             System.out.println(padding + "  False branch execute:");
-            falseBranch.visualizer(depth + 1); // Increment depth for nested nodes
+            getNeighbors()[1].visualizer(depth + 1);
         }
     }
 
