@@ -5,6 +5,7 @@ import com.github.javaparser.ast.expr.Expression;
 
 // This class represents a method declaration node in the control flow graph
 // It contains a method declaration and its body
+// Not being using in the current implementation
 public class MethodDeclarationNode extends ControlFlowNode {
     private Expression condition;
     private MethodDeclaration methodDeclaration;

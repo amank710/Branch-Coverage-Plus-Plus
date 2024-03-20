@@ -7,7 +7,6 @@ public class CodeBlockNode extends ControlFlowNode {
     private Statement statement;
 
     private ControlFlowNode[] neighbors;
-
     public CodeBlockNode() {
         this.neighbors = new ControlFlowNode[]{};
     }
