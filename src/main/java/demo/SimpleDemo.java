@@ -1,5 +1,7 @@
 package demo;
 
+import runtime.Instrumentable;
+
 public class SimpleDemo
 {
     public int abs(int x)
@@ -9,5 +11,17 @@ public class SimpleDemo
             return -x;
         }
         return x;
+    }
+
+    @Instrumentable
+    public void test()
+    {
+        return;
+    }
+
+    @Instrumentable
+    public String foo()
+    {
+        return "foo";
     }
 }
