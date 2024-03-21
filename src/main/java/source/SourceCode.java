@@ -10,7 +10,6 @@ class SourceCode {
             output.append(" is odd");
         }
 
-
         if (isPrime(number)) {
             output.append(", prime");
         }

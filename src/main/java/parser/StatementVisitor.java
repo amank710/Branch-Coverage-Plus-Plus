@@ -21,6 +21,8 @@ public class StatementVisitor extends VoidVisitorAdapter<CodeBlockNode> {
         return root;
     }
 
+    //We assume that we do not have return statement in the source code
+
     public void visit(IfStmt n, CodeBlockNode root) {
         // Create a conditional node
         Expression condition = n.getCondition();
