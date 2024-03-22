@@ -249,3 +249,29 @@ While the Check-in goals for Check-ins 4 and 5 should remain relatively the same
     - Figure out how to run a Java test file and detect which lines are covered (for the dynamic component)
 - By the week of April 1st: 
     - Have the core of the project done, so that we can spend most of the week doing bug fixes and creating the video
+
+# Check-in 4
+### Status of implementation so far
+- The repo setup is complete
+- The static analysis implemented so far uses the javaparser library to find conditional blocks and create a control flow graph.
+- The dynamic analysis is in-progress. A custom test runner for JUnit5 is created to run user tests, finding instrmented classes and functions using Java annotations. Collecting execution information is still in-progress.
+- We have changed scope to increase the complexity of the static analysis to include reachability by analyzing variable dependencies to see if certain paths are unreachable and pruning it from path coverage.
+
+### Plans for final user study.
+- We plan to have a user study where the user will be given a complicated function with a lot of branch paths. Then, we will give them a limited time to write JUnit tests for their code. Using our prototype, we will see how effective their tests are and survey them on how useful they found the tool. We expect that this user study will be done during the week of April 1st.
+
+### Planned timeline for the remaining days.
+- By the end of the week of March 25th:
+    - Improve the static analysis to take into account unreachable code and prune them out
+    - Track covered lines from unit tests using the custom test runner
+
+- By the end of the week of April 1st, our goals are to:
+    - Integrate the static and dynamic components
+    - Perform the user study
+    - Fix bugs
+    - Create the video
+
+### Progress against the timeline planned for your team, including the specific goals you defined (originally as part of Check-in 2) for Check-in 4; any revisions to Check-in 5 goals.
+- In the original timeline, we expected to have the core static and dynamic analysis components to be complete by now. We are behind schedule and we need to move this goal to Check-in 5.
+- We expect to start working on the user interface by Check-In 5 and completing it during the week of April 1.
+- With this timeline, we expect to complete the final user study early in the week of April 1.
