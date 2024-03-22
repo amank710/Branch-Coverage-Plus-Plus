@@ -19,7 +19,7 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     @Override
     public void beforeEach(ExtensionContext context) throws Exception
     {
-        System.out.println("InstrumentedTestExtension: beforeEach");
+        System.out.println("InstrumentedTestExtension: beforeEach. Test instance: " + context.getRequiredTestInstance().toString());
     }
 
     @Override
@@ -28,7 +28,7 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
         System.out.println("InstrumentedTestExtension: createTestInstance");
 
         try {
-            return context.getRequiredTestClass().getDeclaredConstructor().newInstance();
+            return new CodeStepper(context.getRequiredTestClass().getDeclaredConstructor().newInstance());
         } catch (Exception e) {
             throw new TestInstantiationException("Failed to create test instance", e);
         }
