@@ -255,7 +255,7 @@ While the Check-in goals for Check-ins 4 and 5 should remain relatively the same
 - The repo setup is complete
 - The static analysis implemented so far uses the javaparser library to find conditional blocks and create a control flow graph.
 - The dynamic analysis is in-progress. A custom test runner for JUnit5 is created to run user tests, finding instrmented classes and functions using Java annotations. Collecting execution information is still in-progress.
-- We have changed scope to increase the complexity of the static analysis to include reachability.
+- We have changed scope to increase the complexity of the static analysis to include reachability by analyzing variable dependencies to see if certain paths are unreachable and pruning it from path coverage.
 
 ### Plans for final user study.
 - We plan to have a user study where the user will be given a complicated function with a lot of branch paths. Then, we will give them a limited time to write JUnit tests for their code. Using our prototype, we will see how effective their tests are and survey them on how useful they found the tool. We expect that this user study will be done during the week of April 1st.
