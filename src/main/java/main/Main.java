@@ -14,8 +14,8 @@ import parser.StatementVisitor;
 public class Main {
     public static void main(String[] args) {
         try {
-            String className = "SourceCode";
-            String fileName = "SourceCode.java";
+            String className = "SourceCodeBoolean";
+            String fileName = "SourceCodeBoolean.java";
             String functionName = "checkMultiples";
 
             // Set up a combined type solver (this is used for symbol resolution in the JavaParser library)
