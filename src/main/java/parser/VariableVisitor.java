@@ -4,6 +4,7 @@ import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import graph.IfStateNode;
 import graph.Node;
@@ -60,39 +61,41 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         );
         this.previousNode = thenNode;
         n.getThenStmt().accept(this, arg);
+        thenNode.setState(this.previousNode.getState());
         conditionalNode.setThenNode(thenNode);
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
-        AtomicReference<Map<String, Set<Integer>>> thenState = new AtomicReference<>(new HashMap<>(thenNode.getState()));
+        Map<String, Set<Integer>> thenState = new HashMap<>(thenNode.getState());
 
         // If an 'else' part exists, process it similarly.
-        n.getElseStmt().ifPresent(elseStmt -> {
+        if(n.getElseStmt().isPresent()) {
+            Statement elseStmt = n.getElseStmt().get();
             StateNode elseNode = new StateNode(
                     new HashMap<>(conditionalNode.getState()), new ArrayList<>(dependencies), elseStmt.getBegin().get().line
             );
+
             this.previousNode = elseNode;
             elseStmt.accept(this, arg);
+            elseNode.setState(this.previousNode.getState());
             conditionalNode.setElseNode(elseNode);
 
             // Merge 'then' and 'else' states.
-            thenState.set(elseNode.mergeStates(thenState.get()));
-            elseNode.setState(thenState.get());
-        });
+            thenState = thenNode.mergeStates(this.previousNode.getState());
 
-        // Update the 'then' node's state after potentially merging with the 'else' state.
-        thenNode.setState(thenState.get());
+        }
 
         // Clean up by removing the last set of dependencies after leaving the if statement.
         conditionalNode.getDependencies().remove(conditionalNode.getDependencies().size() - 1);
-
-        // Mark all lines within the if statement as visited to prevent re-visitation.
+        
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
             visitedLine.add(i);
         }
 
-        this.previousNode = conditionalNode;
+        Node newNode = new StateNode(thenState, conditionalNode.getDependencies(), n.getEnd().get().line);
+        conditionalNode.setChild(newNode);
 
-        // Continue with the default visitor pattern behavior.
-        super.visit(n, arg);
+        this.previousNode = newNode;
+
+
     }
 
     @Override
