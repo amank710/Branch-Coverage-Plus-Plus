@@ -16,7 +16,7 @@ class SourceCode {
 
         y = x + y;
 
-        if (x <= 0) {
+        if (y <= 0) {
             x = y;
         }
         System.out.println(x);

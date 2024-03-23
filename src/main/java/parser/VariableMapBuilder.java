@@ -15,7 +15,7 @@ public class VariableMapBuilder {
 
     public VariableMapBuilder(String sourcePath, String fileName) {
         this.sourceRoot = new SourceRoot(Paths.get(sourcePath));
-        this.variableMapRoot = new StateNode(null, 0);
+        this.variableMapRoot = new StateNode();
         this.fileName = fileName;
     }
     public Node build() {
