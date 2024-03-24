@@ -119,9 +119,9 @@ public class IfStateNode extends Node{
             solver.add(conditionExpr);
 
             if (solver.check() == Status.SATISFIABLE) {
-                System.out.println(padding + "Condition at line " + this.condition.getBegin().get().line + " is satisfiable.");
+                System.out.println("Condition at line " + this.condition.getBegin().get().line + " is satisfiable.");
             } else {
-                System.out.println(padding + "Condition at line " + this.condition.getBegin().get().line + " is unsatisfiable.");
+                System.out.println("Condition at line " + this.condition.getBegin().get().line + " is unsatisfiable.");
             }
         } catch (Exception e) {
             e.printStackTrace();

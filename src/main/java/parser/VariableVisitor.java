@@ -1,5 +1,6 @@
 package parser;
 
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
@@ -38,7 +39,17 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         // assuming we're not dealing with arithmetic expressions for simplicity.
         List<Set<Integer>> dependencies = new ArrayList<>(this.previousNode.getDependencies());
         Set<Integer> binaryExprDependencies = new HashSet<>();
+//        System.out.println(condition);
 
+        condition.ifUnaryExpr(unaryExpr -> {
+//            System.out.println(unaryExpr);
+//            unaryExpr.getExpression().stream().iterator()
+//            unaryExpr.get.ifNameExpr(nameExpr ->
+//                    binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
+//            unaryExpr.getRight().ifNameExpr(nameExpr ->
+//                    binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
+//            dependencies.add(binaryExprDependencies);
+        });
         // Extract dependencies from both sides of a binary expression if present.
         condition.ifBinaryExpr(binaryExpr -> {
             binaryExpr.getLeft().ifNameExpr(nameExpr ->
@@ -83,7 +94,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         // Clean up by removing the last set of dependencies after leaving the if statement.
         List<Set<Integer>> originalDependencies = new ArrayList<>(this.previousNode.getDependencies());
-        originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
+
+        if (!originalDependencies.isEmpty()) {
+            originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
+        }
+
 
         // Add the lines visited by the if statement to the visitedLine set to avoid overwriting the state
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
@@ -114,6 +129,15 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         String variableName = n.getTarget().toString();
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
         previousNode = processNode(variableName, line, previousNode);
+    }
+
+    @Override
+    public void visit(MethodDeclaration n, Node arg) {
+        n.getParameters().forEach(parameter -> {
+            String variableName = parameter.getNameAsString();
+            int line = n.getBegin().get().line;
+            processNode(variableName, line, previousNode);
+        });
     }
 
     private Node processNode(String variableName, int line, Node parent) {
