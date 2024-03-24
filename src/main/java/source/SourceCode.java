@@ -1,47 +1,28 @@
 package source;
-
 class SourceCode {
-    public static String checkMultiples(int number) {
-        StringBuilder output = new StringBuilder();
-        output.append(number);
-        if (number % 2 == 0) {
-            output.append(" is even");
+    public String foo(int number) {
+        int x = 42;
+        int y = number;
+        int z = 5;
+        int w = 14;
+
+        if (y > 0) {
+            y = z;
+            x = x + w;
         } else {
-            output.append(" is odd");
+            //empty
+            y = x;
         }
 
-        if (isPrime(number)) {
-            output.append(", prime");
+        y = x + y;
+
+        if (y <= 0) {
+            x = y;
         }
+        System.out.println(x);
 
-        if (isFibonacci(number)) {
-            output.append(", fib");
-        }
-        return output.toString().trim();
-    }
+        return "done";
 
-    // Function to check if a number is prime
-    public static boolean isPrime(int num) {
-        if (num <= 1)
-            return false;
-        // Check from 2 to n-1
-        for (int i = 2; i < num; i++)
-            if (num % i == 0)
-                return false;
-
-        return true;
-    }
-
-    // Helper function to check if a number is Fibonacci
-    public static boolean isFibonacci(int number) {
-        return isPerfectSquare(5*number*number + 4) ||
-                isPerfectSquare(5*number*number - 4);
-    }
-
-    static boolean isPerfectSquare(int x)
-    {
-        int s = (int) Math.sqrt(x);
-        return (s*s == x);
     }
 
 }
