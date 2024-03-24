@@ -1,5 +1,6 @@
 package parser;
 
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
@@ -10,6 +11,7 @@ import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,7 +41,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         List<Set<Integer>> dependencies = new ArrayList<>(this.previousNode.getDependencies());
         Set<Integer> binaryExprDependencies = new HashSet<>();
 
-        // Extract dependencies from both sides of a binary expression if present.
         condition.ifBinaryExpr(binaryExpr -> {
             binaryExpr.getLeft().ifNameExpr(nameExpr ->
                     binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
@@ -83,7 +84,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         // Clean up by removing the last set of dependencies after leaving the if statement.
         List<Set<Integer>> originalDependencies = new ArrayList<>(this.previousNode.getDependencies());
-        originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
+
+        if (!originalDependencies.isEmpty()) {
+            originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
+        }
+
 
         // Add the lines visited by the if statement to the visitedLine set to avoid overwriting the state
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
@@ -103,42 +108,96 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(VariableDeclarationExpr n, Node arg) {
         // Process the node to update the state with variable declarations
         n.getVariables().forEach(var -> {
+            ArrayList<Integer> lines = new ArrayList<Integer>();
             String variableName = var.getNameAsString();
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
-            previousNode = processNode(variableName, line, previousNode);
+            lines.add(line);
+            previousNode = processNode(variableName, lines, previousNode);
         });
     }
 
     @Override
     public void visit(AssignExpr n, Node arg) {
+        ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
+        String valueName = n.getValue().toString();
+        System.out.println(variableName + n.getValue().toString());
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
-        previousNode = processNode(variableName, line, previousNode);
+        lines.add(line);
+        Set<Integer> valLineNumbers = this.assignValLineNumbers(lines, valueName);
+        if (!valLineNumbers.isEmpty()) {
+            lines.addAll(valLineNumbers);
+        }
+
+        previousNode = processNode(variableName, lines, previousNode);
     }
 
-    private Node processNode(String variableName, int line, Node parent) {
+    @Override
+    public void visit(MethodDeclaration n, Node arg) {
+        ArrayList<Integer> lines = new ArrayList<Integer>();
+        n.getParameters().forEach(parameter -> {
+            String variableName = parameter.getNameAsString();
+            int line = n.getBegin().get().line;
+            lines.add(line);
+            previousNode = processNode(variableName, lines, previousNode);
+        });
+        n.getBody().ifPresent(body -> body.accept(this, arg));
+    }
+
+    // REQUIRES: lines[0] is the current line number always
+    private Node processNode(String variableName, ArrayList<Integer> lines, Node parent) {
         if (parent == null) {
             parent = initialNode;
         }
-        if (visitedLine.contains(line)) {
+        if (visitedLine.contains(lines.get(0))) {
             return parent;
         }
         Map<String, Set<Integer>> currentState = parent.getState();
+        System.out.println("current state" + currentState);
+        if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(lines.get(0))) {
 
-        if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(line)) {
             Map<String, Set<Integer>> newState = new HashMap<>();
             for (Map.Entry<String, Set<Integer>> entry : currentState.entrySet()) {
                 newState.put(entry.getKey(), new HashSet<>(entry.getValue()));
             }
             // Add the new variable assignment to the state
             // computeIfAbsent is a method that returns the value of the specified key in the map
-            newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(line);
-            Node newNode = new StateNode(newState, parent.getDependencies(), line);
+
+            for (int l : lines) {
+                newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(l);
+            }
+
+            Node newNode = new StateNode();
+
+            // If the variable has dependencies (so in if block), add the dependencies to the new node state
+            if (parent.getDependencies().size() > 0) {
+                List<Set<Integer>> dependencies = new ArrayList<>(parent.getDependencies());
+                for (Set<Integer> dependency : dependencies) {
+                    newState.computeIfAbsent(variableName, k -> new HashSet<>()).addAll(dependency);
+                }
+            }
+            newNode.setState(newState);
+            newNode.setLineNumber(lines.get(0));
+            newNode.setDependencies(parent.getDependencies());
+
             parent.setChild(newNode);
             return newNode;
         }
 
         return parent;
+    }
+
+    private Set<Integer> assignValLineNumbers(ArrayList<Integer> lines, String valueName) {
+        Map<String, Set<Integer>> currentState;
+        if (previousNode == null) {
+            currentState = initialNode.getState();
+        } else {
+            currentState = previousNode.getState();
+        }
+        if (currentState.containsKey(valueName)) {
+            return currentState.get(valueName);
+        }
+        return new HashSet<>();
     }
 
 }
