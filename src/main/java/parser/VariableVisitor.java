@@ -167,7 +167,19 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(l);
             }
 
-            Node newNode = new StateNode(newState, parent.getDependencies(), lines.get(0));
+            Node newNode = new StateNode();
+
+            // If the variable has dependencies (so in if block), add the dependencies to the new node state
+            if (parent.getDependencies().size() > 0) {
+                List<Set<Integer>> dependencies = new ArrayList<>(parent.getDependencies());
+                for (Set<Integer> dependency : dependencies) {
+                    newState.computeIfAbsent(variableName, k -> new HashSet<>()).addAll(dependency);
+                }
+            }
+            newNode.setState(newState);
+            newNode.setLineNumber(lines.get(0));
+            newNode.setDependencies(parent.getDependencies());
+
             parent.setChild(newNode);
             return newNode;
         }
