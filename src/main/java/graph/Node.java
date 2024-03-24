@@ -42,43 +42,37 @@ abstract public class Node {
 
     abstract public int getLineNumber();
 
-    abstract void setLineNumber(int lineNum);
+    public void setLineNumber(int lineNum) {
+        this.lineNum = lineNum;
+    }
 
     public Map<String, Set<Integer>> getStateFromLine(int line) {
-        // A wrapper method that attempts to find the state for the given line.
-        // If not found, it tries for the previous lines recursively.
-        return dfsSearchByLine(line, true).getState();
+
+        return searchByLine(line, true).getState();
     }
 
     public List<Set<Integer>> getDependenciesFromLine(int line) {
 
-        return dfsSearchByLine(line, true).getDependencies();
+        return searchByLine(line, true).getDependencies();
     }
 
-    protected Node dfsSearchByLine(int line, boolean decrement) {
-        if (line < 0) {
-            return null;
-        }
-
-        // If the current line matches the node's line number, return the state.
+    protected Node searchByLine(int line, boolean decrement) {
         if (line == getLineNumber()) {
+            System.out.println("Found line " + line + " in " + this.getClass().getSimpleName());
             return this;
         } else {
-            // Attempt to find the state in child nodes.
-            Node child = getChild();
-            if (child != null) {
-                Node node = child.dfsSearchByLine(line, false); // Pass 'false' to avoid decrementing in children.
+            if (getChild() != null) {
+                Node node =  getChild().searchByLine(line, false);
                 if (node != null) {
-                    // If the state is found in a child, return it.
                     return node;
                 }
             }
         }
-        // After exploring the current line fully, and if allowed, try the previous line.
         if (decrement) {
-            return dfsSearchByLine(line - 1, true);
+            return searchByLine(line - 1, true);
         }
-        return null; // Return null if no state found for the current line without further decrement.
+        return null;
+
     }
 
     public Map<String, Set<Integer>> mergeStates(Map<String, Set<Integer>> state) {

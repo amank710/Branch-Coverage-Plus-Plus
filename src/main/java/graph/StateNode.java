@@ -37,7 +37,7 @@ public class StateNode extends Node{
         return lineNum;
     }
 
-    void setLineNumber(int lineNum) {
+    public void setLineNumber(int lineNum) {
         this.lineNum = lineNum;
     }
 

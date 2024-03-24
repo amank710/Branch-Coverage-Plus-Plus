@@ -77,49 +77,25 @@ public class IfStateNode extends Node{
 
     @Override
     public Map<String, Set<Integer>> getStateFromLine(int line) {
-        // Wrapper method to control the search flow
-        Node node = dfsSearchByLine(line, true);
-        if (node != null) {
-            return node.getState();
-        }
-        // If no result found and line is still positive, decrement and search again
-        if (line > 1) {
-            return getStateFromLine(line - 1);
-        }
-        return null;
+       return searchByLine(line, true).getState();
     }
 
     @Override
     public List<Set<Integer>> getDependenciesFromLine(int line) {
-        Node node = dfsSearchByLine(line, true);
-        if (node != null) {
-            return node.getDependencies();
-        }
-        if (line > 1) {
-            return getDependenciesFromLine(line - 1);
-        }
-        return null;
+        return searchByLine(line, true).getDependencies();
     }
 
-    @Override
-    protected Node dfsSearchByLine(int line, boolean decrement) {
-        if (line < 0) {
-            return null;
-        }
-        if (line == this.lineNum) {
+    protected Node searchByLine(int line, boolean decrement) {
+        if (line == getLineNumber()) {
+            System.out.println("Found line " + line + " in " + this.getClass().getSimpleName());
             return this;
-        }
-        if (thenNode != null) {
-            Node node = thenNode.dfsSearchByLine(line, false);
-            if (node != null) {
-                return node;
+        } else {
+            if (getChild() != null) {
+                return getChild().searchByLine(line, false);
             }
         }
-        if (elseNode != null) {
-            Node node = elseNode.dfsSearchByLine(line, false);
-            if (node != null) {
-                return node;
-            }
+        if (decrement) {
+            return searchByLine(line - 1, true);
         }
         return null;
     }

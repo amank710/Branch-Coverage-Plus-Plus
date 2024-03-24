@@ -52,49 +52,50 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         IfStateNode conditionalNode = new IfStateNode(
                 this.previousNode.getState(), dependencies, n.getBegin().get().line, condition
         );
+
         conditionalNode.setCondition(condition);
         this.previousNode.setChild(conditionalNode);
 
         // Process the 'then' part of the if statement.
-        StateNode thenNode = new StateNode(
-                conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line
-        );
+        StateNode thenNode = new StateNode(conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line);
         this.previousNode = thenNode;
+        // Visit the 'then' part of the if statement.
         n.getThenStmt().accept(this, arg);
-        thenNode.setState(this.previousNode.getState());
+        // Update the state of the 'then' node with the state after visiting the 'then' part.
         conditionalNode.setThenNode(thenNode);
+
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
-        Map<String, Set<Integer>> thenState = new HashMap<>(thenNode.getState());
+        Node afterIfNode = new StateNode();
+        afterIfNode.setState(this.previousNode.getState());
 
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
             Statement elseStmt = n.getElseStmt().get();
-            StateNode elseNode = new StateNode(
-                    new HashMap<>(conditionalNode.getState()), new ArrayList<>(dependencies), elseStmt.getBegin().get().line
-            );
-
+            StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
             this.previousNode = elseNode;
+            // Visit the 'else' part of the if statement.
             elseStmt.accept(this, arg);
-            elseNode.setState(this.previousNode.getState());
             conditionalNode.setElseNode(elseNode);
 
             // Merge 'then' and 'else' states.
-            thenState = thenNode.mergeStates(this.previousNode.getState());
-
+            afterIfNode.setState(afterIfNode.mergeStates(this.previousNode.getState()));
         }
 
         // Clean up by removing the last set of dependencies after leaving the if statement.
-        conditionalNode.getDependencies().remove(conditionalNode.getDependencies().size() - 1);
-        
+        List<Set<Integer>> originalDependencies = new ArrayList<>(this.previousNode.getDependencies());
+        originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
+
+        // Add the lines visited by the if statement to the visitedLine set to avoid overwriting the state
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
             visitedLine.add(i);
         }
 
-        Node newNode = new StateNode(thenState, conditionalNode.getDependencies(), n.getEnd().get().line);
-        conditionalNode.setChild(newNode);
+        // Set the dependencies of the afterIfNode to the original dependencies
+        afterIfNode.setDependencies(originalDependencies);
+        afterIfNode.setLineNumber(n.getEnd().get().line);
+        conditionalNode.setChild(afterIfNode);
 
-        this.previousNode = newNode;
-
+        this.previousNode = afterIfNode;
 
     }
 
