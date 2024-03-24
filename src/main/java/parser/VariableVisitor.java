@@ -11,9 +11,9 @@ import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
 
-import java.sql.Array;
+import z3.Z3Solver;
+
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 // This is a visitor class that visits the AST nodes and builds the variable map
 public class VariableVisitor extends VoidVisitorAdapter<Node> {
@@ -35,6 +35,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(IfStmt n, Node arg) {
         // Start by capturing the condition of the if statement.
         Expression condition = n.getCondition();
+        Z3Solver checker = new Z3Solver(condition);
+        if (!checker.solve()) return;
 
         // Prepare a list to hold dependencies from the binary expression in the condition,
         // assuming we're not dealing with arithmetic expressions for simplicity.
@@ -121,7 +123,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
         String valueName = n.getValue().toString();
-        System.out.println(variableName + n.getValue().toString());
+//        System.out.println(variableName + n.getValue().toString());
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
         lines.add(line);
         Set<Integer> valLineNumbers = this.assignValLineNumbers(lines, valueName);
@@ -153,7 +155,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             return parent;
         }
         Map<String, Set<Integer>> currentState = parent.getState();
-        System.out.println("current state" + currentState);
+//        System.out.println("current state" + currentState);
         if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(lines.get(0))) {
 
             Map<String, Set<Integer>> newState = new HashMap<>();
