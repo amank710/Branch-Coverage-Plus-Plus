@@ -39,18 +39,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         // assuming we're not dealing with arithmetic expressions for simplicity.
         List<Set<Integer>> dependencies = new ArrayList<>(this.previousNode.getDependencies());
         Set<Integer> binaryExprDependencies = new HashSet<>();
-//        System.out.println(condition);
 
-        condition.ifUnaryExpr(unaryExpr -> {
-//            System.out.println(unaryExpr);
-//            unaryExpr.getExpression().stream().iterator()
-//            unaryExpr.get.ifNameExpr(nameExpr ->
-//                    binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
-//            unaryExpr.getRight().ifNameExpr(nameExpr ->
-//                    binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
-//            dependencies.add(binaryExprDependencies);
-        });
-        // Extract dependencies from both sides of a binary expression if present.
         condition.ifBinaryExpr(binaryExpr -> {
             binaryExpr.getLeft().ifNameExpr(nameExpr ->
                     binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
@@ -136,8 +125,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         n.getParameters().forEach(parameter -> {
             String variableName = parameter.getNameAsString();
             int line = n.getBegin().get().line;
-            processNode(variableName, line, previousNode);
+            previousNode = processNode(variableName, line, previousNode);
         });
+        n.getBody().ifPresent(body -> body.accept(this, arg));
     }
 
     private Node processNode(String variableName, int line, Node parent) {
@@ -150,6 +140,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Map<String, Set<Integer>> currentState = parent.getState();
 
         if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(line)) {
+
             Map<String, Set<Integer>> newState = new HashMap<>();
             for (Map.Entry<String, Set<Integer>> entry : currentState.entrySet()) {
                 newState.put(entry.getKey(), new HashSet<>(entry.getValue()));
