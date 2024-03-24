@@ -3,12 +3,14 @@ package source;
 class SourceCodeBoolean {
     public static Boolean booleanFlags(boolean flag) {
         boolean output = false;
+        boolean a = true;
+        output = a;
         if (!true) { // Not satisfiable
             output = true;
         } else if (!true) {
-            output = false;
+            output = a;
         }
-
+        flag = output;
         if (true) { // Satisfiable
             output = true;
         } else {

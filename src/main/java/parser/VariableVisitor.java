@@ -11,6 +11,7 @@ import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -107,39 +108,53 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(VariableDeclarationExpr n, Node arg) {
         // Process the node to update the state with variable declarations
         n.getVariables().forEach(var -> {
+            ArrayList<Integer> lines = new ArrayList<Integer>();
             String variableName = var.getNameAsString();
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
-            previousNode = processNode(variableName, line, previousNode);
+            lines.add(line);
+            previousNode = processNode(variableName, lines, previousNode);
         });
     }
 
     @Override
     public void visit(AssignExpr n, Node arg) {
+        ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
+        String valueName = n.getValue().toString();
+        System.out.println(variableName + n.getValue().toString());
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
-        previousNode = processNode(variableName, line, previousNode);
+        lines.add(line);
+        Set<Integer> valLineNumbers = this.assignValLineNumbers(lines, valueName);
+        if (!valLineNumbers.isEmpty()) {
+            lines.addAll(valLineNumbers);
+        }
+
+        previousNode = processNode(variableName, lines, previousNode);
     }
 
     @Override
     public void visit(MethodDeclaration n, Node arg) {
+        ArrayList<Integer> lines = new ArrayList<Integer>();
         n.getParameters().forEach(parameter -> {
             String variableName = parameter.getNameAsString();
             int line = n.getBegin().get().line;
-            previousNode = processNode(variableName, line, previousNode);
+            lines.add(line);
+            previousNode = processNode(variableName, lines, previousNode);
         });
         n.getBody().ifPresent(body -> body.accept(this, arg));
     }
 
-    private Node processNode(String variableName, int line, Node parent) {
+    // REQUIRES: lines[0] is the current line number always
+    private Node processNode(String variableName, ArrayList<Integer> lines, Node parent) {
         if (parent == null) {
             parent = initialNode;
         }
-        if (visitedLine.contains(line)) {
+        if (visitedLine.contains(lines.get(0))) {
             return parent;
         }
         Map<String, Set<Integer>> currentState = parent.getState();
-
-        if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(line)) {
+        System.out.println("current state" + currentState);
+        if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(lines.get(0))) {
 
             Map<String, Set<Integer>> newState = new HashMap<>();
             for (Map.Entry<String, Set<Integer>> entry : currentState.entrySet()) {
@@ -147,13 +162,30 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             }
             // Add the new variable assignment to the state
             // computeIfAbsent is a method that returns the value of the specified key in the map
-            newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(line);
-            Node newNode = new StateNode(newState, parent.getDependencies(), line);
+
+            for (int l : lines) {
+                newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(l);
+            }
+
+            Node newNode = new StateNode(newState, parent.getDependencies(), lines.get(0));
             parent.setChild(newNode);
             return newNode;
         }
 
         return parent;
+    }
+
+    private Set<Integer> assignValLineNumbers(ArrayList<Integer> lines, String valueName) {
+        Map<String, Set<Integer>> currentState;
+        if (previousNode == null) {
+            currentState = initialNode.getState();
+        } else {
+            currentState = previousNode.getState();
+        }
+        if (currentState.containsKey(valueName)) {
+            return currentState.get(valueName);
+        }
+        return new HashSet<>();
     }
 
 }
