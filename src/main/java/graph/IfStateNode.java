@@ -111,13 +111,19 @@ public class IfStateNode extends Node{
         String indentation = createIndentation(depth);
         System.out.println(indentation + getLineNumber() + ": Condition(" + this.getCondition() + ")");
 
-        // Visualize the 'then' branch, increasing the depth for indentation
-        this.getThenNode().visualize(depth + 1);
+        if (this.getThenNode() != null) {
+            System.out.println(indentation + getLineNumber() + ": Then");
+            this.getThenNode().visualize(depth + 1);
+        } else {
+            System.out.println(indentation + getLineNumber() + ": Then is unsatisfiable" );
+        }
 
         // If there's an 'else' branch, visualize it as well
         if (this.getElseNode() != null) {
             System.out.println(indentation + getLineNumber() + ": Else");
             this.getElseNode().visualize(depth + 1);
+        } else {
+            System.out.println(indentation + getLineNumber() + ": Else is unsatisfiable");
         }
 
         if (this.getChild() != null) {
