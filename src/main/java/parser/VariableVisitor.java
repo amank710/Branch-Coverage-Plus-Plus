@@ -86,7 +86,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            Expression elseCondition =new UnaryExpr( n.getCondition(), Operator.LOGICAL_COMPLEMENT);
+            Expression elseCondition = null;
+            if(originalCondition == null) {
+                elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
+            } else {
+                elseCondition = new BinaryExpr(originalCondition, new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT), BinaryExpr.Operator.AND);
+            }
             Z3Solver elseChecker = new Z3Solver(elseCondition);
             if (elseChecker.solve()) {
                 this.previousCondition = elseCondition;
