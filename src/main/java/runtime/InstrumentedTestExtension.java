@@ -1,5 +1,6 @@
 package runtime;
 
+import com.sun.tools.attach.VirtualMachine;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.io.File;
@@ -12,14 +13,24 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     public void beforeAll(ExtensionContext context) throws Exception
     {
         System.out.println("[InstrumentedTestExtension]: Finding instrumented types...");
+
+        List vms = VirtualMachine.list();
+        System.out.println("[InstrumentedTestExtension]: Found VMs: " + vms.toString());
+
         List<Class<?>> instClasses = getInstrumented(context.getRequiredTestClass());
         String[] classNames = Arrays.stream(instClasses.toArray()).map(Object::toString).toArray(String[]::new);
         System.out.println("[InstrumentedTestExtension]: Found instrumented types: " + Arrays.toString(classNames));
 
-        String classpath = System.getProperty("java.class.path");
-        String[] classPathValues = classpath.split(File.pathSeparator);
-        for (String classPath : classPathValues) {
-            System.out.println(classPath);
+        CodeStepper codeStepper = new CodeStepper();
+        try
+        {
+            codeStepper.run();
+            System.out.println("Code stepper executed successfully");
+        }
+        catch (Exception e)
+        {
+            System.out.println("Failed to execute code stepper");
+            e.printStackTrace();
         }
     }
 
@@ -34,17 +45,6 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     {
         System.out.println("InstrumentedTestExtension: afterEach. Test instance: " + context.getRequiredTestInstance().toString());
 
-        CodeStepper codeStepper = new CodeStepper(context.getRequiredTestMethod());
-        try
-        {
-            codeStepper.run();
-            System.out.println("Code stepper executed successfully");
-        }
-        catch (Exception e)
-        {
-            System.out.println("Failed to execute code stepper");
-            e.printStackTrace();
-        }
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
