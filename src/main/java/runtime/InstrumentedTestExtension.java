@@ -2,10 +2,11 @@ package runtime;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.io.File;
 
 import org.junit.jupiter.api.extension.*;
 
-public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachCallback, TestInstanceFactory
+public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback
 {
     @Override
     public void beforeAll(ExtensionContext context) throws Exception
@@ -14,6 +15,12 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
         List<Class<?>> instClasses = getInstrumented(context.getRequiredTestClass());
         String[] classNames = Arrays.stream(instClasses.toArray()).map(Object::toString).toArray(String[]::new);
         System.out.println("[InstrumentedTestExtension]: Found instrumented types: " + Arrays.toString(classNames));
+
+        String classpath = System.getProperty("java.class.path");
+        String[] classPathValues = classpath.split(File.pathSeparator);
+        for (String classPath : classPathValues) {
+            System.out.println(classPath);
+        }
     }
 
     @Override
@@ -23,14 +30,20 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     }
 
     @Override
-    public Object createTestInstance(TestInstanceFactoryContext factoryContext, ExtensionContext context) throws TestInstantiationException
+    public void afterEach(ExtensionContext context) throws Exception
     {
-        System.out.println("InstrumentedTestExtension: createTestInstance");
+        System.out.println("InstrumentedTestExtension: afterEach. Test instance: " + context.getRequiredTestInstance().toString());
 
-        try {
-            return new CodeStepper(context.getRequiredTestClass().getDeclaredConstructor().newInstance());
-        } catch (Exception e) {
-            throw new TestInstantiationException("Failed to create test instance", e);
+        CodeStepper codeStepper = new CodeStepper(context.getRequiredTestMethod());
+        try
+        {
+            codeStepper.run();
+            System.out.println("Code stepper executed successfully");
+        }
+        catch (Exception e)
+        {
+            System.out.println("Failed to execute code stepper");
+            e.printStackTrace();
         }
     }
 

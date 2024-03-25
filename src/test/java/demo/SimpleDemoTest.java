@@ -17,6 +17,7 @@ public class SimpleDemoTest
     @Test
     public void testAbs()
     {
+        System.out.println("SimpleDemoTest: testAbs");
         SimpleDemo demo = new SimpleDemo();
         assertEquals(5, demo.abs(5));
     }
