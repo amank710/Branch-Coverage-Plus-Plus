@@ -6,6 +6,8 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.expr.UnaryExpr;
+import com.github.javaparser.ast.expr.UnaryExpr.Operator;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import graph.IfStateNode;
 import graph.Node;
@@ -37,6 +39,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Expression condition = n.getCondition();
         Z3Solver checker = new Z3Solver(condition);
         if (!checker.solve()) return;
+
+        Expression elseCondition =  new UnaryExpr(condition, Operator.LOGICAL_COMPLEMENT);
+        Z3Solver elseChecker = new Z3Solver(elseCondition);
+        if (!elseChecker.solve()) return;
 
         // Prepare a list to hold dependencies from the binary expression in the condition,
         // assuming we're not dealing with arithmetic expressions for simplicity.
