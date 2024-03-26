@@ -7,10 +7,21 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Z3Solver {
 
     private Expression condition;
+    private Map<String, Boolean> staticVariableValues;
+
+    public Z3Solver() {
+        this.staticVariableValues = new HashMap<>();
+
+    }
+    public Z3Solver(Expression condition, Map<String, Boolean> staticVariableValues) {
+        this.condition = condition;
+        this.staticVariableValues = staticVariableValues;
+    }
 
     public Z3Solver(Expression condition) {
         this.condition = condition;
@@ -69,10 +80,28 @@ public class Z3Solver {
             return ctx.mkBool(booleanExpr.getValue());
         } else if (expr instanceof NameExpr) {
             NameExpr nameExpr = (NameExpr) expr;
-            // This might indicate a simple variable condition.
-            return (BoolExpr) ctx.mkBoolConst(nameExpr.getNameAsString());
+            // Check if the variable value is statically determined
+            if (staticVariableValues.containsKey(nameExpr.getNameAsString())) {
+                boolean value = staticVariableValues.get(nameExpr.getNameAsString());
+                return ctx.mkBool(value);
+            } else {
+                // This might indicate a simple variable condition.
+                return (BoolExpr) ctx.mkBoolConst(nameExpr.getNameAsString());
+            }
         }
         // Handle other expression types...
         throw new IllegalArgumentException("Unsupported expression type: " + expr.getClass());
+    }
+
+    public void addStaticVariableValues(String variableName, boolean value) {
+        this.staticVariableValues.put(variableName, value);
+    }
+
+    public Map<String, Boolean> getStaticVariableValues() {
+        return this.staticVariableValues;
+    }
+
+    public void setCondition(Expression condition) {
+        this.condition = condition;
     }
 }

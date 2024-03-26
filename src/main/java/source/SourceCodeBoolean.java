@@ -39,12 +39,12 @@ class SourceCodeBoolean {
 
 
 
-
-        if (!true) { // Not satisfiable
-            output = true;
-        } else if (!true) {
-            output = a;
-        }
+//
+//        if (!true) { // Not satisfiable
+//            output = true;
+//        } else if (!true) {
+//            output = a;
+//        }
 
         // flag is now set to output. we know the value of output, so going forward
         // this variable should be tracked and both the if and the else conditon should not
@@ -56,37 +56,37 @@ class SourceCodeBoolean {
             output = false;
         }
 
-        if (flag) { // satisfiable
-            output = true;
-        } else if(flag && !flag ) { // Not satisfiable
-            output = false;
-        } else {
-            output = false;
-        }
-
-        if (flag) { // satisfiable
-            output = true;
-        } else if( true ) { //  satisfiable
-            output = false;
-        } else {  //Not satisfiable
-            output = false;
-        }
-
-
-
-
-        if (flag && false) { // Not satisfiable
-            output = true;
-        } else {
-            output = false;
-        }
-
-        if (flag && flag) { // Satisfiable
-            output = true;
-        } else {
-            output = false;
-        }
-
+//        if (flag) { // satisfiable
+//            output = true;
+//        } else if(flag && !flag ) { // Not satisfiable
+//            output = false;
+//        } else {
+//            output = false;
+//        }
+//
+//        if (flag) { // satisfiable
+//            output = true;
+//        } else if( true ) { //  satisfiable
+//            output = false;
+//        } else {  //Not satisfiable
+//            output = false;
+//        }
+//
+//
+//
+//
+//        if (flag && false) { // Not satisfiable
+//            output = true;
+//        } else {
+//            output = false;
+//        }
+//
+//        if (flag && flag) { // Satisfiable
+//            output = true;
+//        } else {
+//            output = false;
+//        }
+//
 
         return output;
     }

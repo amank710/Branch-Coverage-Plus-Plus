@@ -28,12 +28,15 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     private Node initialNode;
     private Node previousNode;
     private Expression previousCondition;
+    private Z3Solver z3Solver;
+
 
     // Keep track of visited lines to avoid overwriting the state updated from if statements by the assignment statements
     private HashSet<Integer> visitedLine = new HashSet<>();
 
     public VariableVisitor(Node initialNode) {
         this.initialNode = initialNode;
+        this.z3Solver = new Z3Solver();
     }
 
     @Override
@@ -67,9 +70,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         conditionalNode.setCondition(thenCondition);
         this.previousNode.setChild(conditionalNode);
-        Z3Solver thenChecker = new Z3Solver(thenCondition);
+        this.z3Solver.setCondition(thenCondition);
 
-        if (thenChecker.solve()) {
+        if (this.z3Solver.solve()) {
         // Process the 'then' part of the if statement.
             StateNode thenNode = new StateNode(conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line);
             this.previousNode = thenNode;
@@ -92,8 +95,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             } else {
                 elseCondition = new BinaryExpr(originalCondition, new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT), BinaryExpr.Operator.AND);
             }
-            Z3Solver elseChecker = new Z3Solver(elseCondition);
-            if (elseChecker.solve()) {
+            this.z3Solver.setCondition(elseCondition);
+            if (this.z3Solver.solve()) {
                 this.previousCondition = elseCondition;
                 Statement elseStmt = n.getElseStmt().get();
                 StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
@@ -137,6 +140,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             String variableName = var.getNameAsString();
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
+            processAssignStaticValue(variableName, var.getInitializer().get());
             previousNode = processNode(variableName, lines, previousNode);
         });
     }
@@ -153,7 +157,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         if (!valLineNumbers.isEmpty()) {
             lines.addAll(valLineNumbers);
         }
-
+        processAssignStaticValue(variableName, n.getValue());
         previousNode = processNode(variableName, lines, previousNode);
     }
 
@@ -167,6 +171,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             previousNode = processNode(variableName, lines, previousNode);
         });
         n.getBody().ifPresent(body -> body.accept(this, arg));
+    }
+
+    private void processAssignStaticValue(String variableName, Expression value) {
+        if (value.isBooleanLiteralExpr()) {
+            boolean boolValue = value.asBooleanLiteralExpr().getValue();
+            this.z3Solver.addStaticVariableValues(variableName, boolValue);
+        }
     }
 
     // REQUIRES: lines[0] is the current line number always
