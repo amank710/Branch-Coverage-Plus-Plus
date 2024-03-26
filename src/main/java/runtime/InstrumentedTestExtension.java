@@ -2,8 +2,9 @@ package runtime;
 
 import com.sun.tools.attach.VirtualMachine;
 import java.lang.reflect.Method;
-import java.util.*;
 import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.*;
 
@@ -21,7 +22,14 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
         String[] classNames = Arrays.stream(instClasses.toArray()).map(Object::toString).toArray(String[]::new);
         System.out.println("[InstrumentedTestExtension]: Found instrumented types: " + Arrays.toString(classNames));
 
-        CodeStepper codeStepper = new CodeStepper();
+        Map<String, Set<String>> instrumentedMethodMapping = new HashMap<>();
+        for (Class<?> instClass : instClasses) {
+            Set<Method> instMethods = getInstrumentable(instClass);
+            System.out.println("[InstrumentedTestExtension]: Found instrumentable methods for " + instClass.getName() + ": " + instMethods);
+            instrumentedMethodMapping.put(instClass.getName(), instMethods.stream().map(Method::getName).collect(Collectors.toSet()));
+        }
+
+        CodeStepper codeStepper = new CodeStepper(instrumentedMethodMapping);
         try
         {
             codeStepper.run();
@@ -44,7 +52,6 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     public void afterEach(ExtensionContext context) throws Exception
     {
         System.out.println("InstrumentedTestExtension: afterEach. Test instance: " + context.getRequiredTestInstance().toString());
-
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
@@ -62,23 +69,21 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
         return Arrays.asList(annotation.value());
     }
 
-    static <T> List<String> getInstrumentable(Class<T> target)
+    static <T> Set<Method> getInstrumentable(Class<T> target)
     {
         // Get methods of the class
         Method[] methods = target.getDeclaredMethods();
 
         // List of instrumentable method names
-        List<String> instMethods = new ArrayList<String>();
+        Set<Method> instMethods = new HashSet<Method>();
 
         // Iterate and check for annotation
         for (Method method : methods) {
             // Annotation check
             if(method.isAnnotationPresent(Instrumentable.class)) {
-                instMethods.add(method.getName());
+                instMethods.add(method);
             }
         }
-
-        System.out.println(instMethods);
 
         return instMethods;
     }

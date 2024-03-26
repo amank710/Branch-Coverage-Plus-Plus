@@ -4,6 +4,7 @@ import runtime.Instrumentable;
 
 public class SimpleDemo
 {
+    @Instrumentable
     public int abs(int x)
     {
         if (x < 0)
@@ -13,7 +14,6 @@ public class SimpleDemo
         return x;
     }
 
-    @Instrumentable
     public void test()
     {
         return;

@@ -25,7 +25,7 @@ public class InstrumentedTestExtensionTest
     {
         Class<SimpleDemo> targetClass = SimpleDemo.class;
 
-        List<String> instMethods = InstrumentedTestExtension.getInstrumentable(targetClass);
+        List<String> instMethods = InstrumentedTestExtension.getInstrumentable(targetClass).stream().map(m -> m.getName()).toList();
 
         assertFalse(instMethods.contains("abs"));
         assertTrue(instMethods.contains("test"));
