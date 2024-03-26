@@ -24,11 +24,31 @@ class SourceCodeBoolean {
 
         }
 
+        // flag has not been set in the func, it is passed
+        // as we are trying to do path coverage, we need to be able to
+        // include both these paths as satisfiable because we just dont know
+        if (flag) {
+
+        } else if (!flag) {
+
+        } else if (flag && !flag) {
+            // this condition should not be satisfiable and included in the paths
+            // because doesnt matter the value of flag that is passed in, this will
+            // never satisfy
+        }
+
+
+
+
         if (!true) { // Not satisfiable
             output = true;
         } else if (!true) {
             output = a;
         }
+
+        // flag is now set to output. we know the value of output, so going forward
+        // this variable should be tracked and both the if and the else conditon should not
+        // be in the path
         flag = output;
         if (true) { // Satisfiable
             output = true;
