@@ -177,8 +177,16 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         if (value.isBooleanLiteralExpr()) {
             boolean boolValue = value.asBooleanLiteralExpr().getValue();
             this.z3Solver.addStaticVariableValues(variableName, boolValue);
+        } else {
+            // means the value is a variable
+            if(this.z3Solver.isVariableValueKnown(value.toString())){
+                this.z3Solver.addStaticVariableValues(variableName, this.z3Solver.getVariableValue(value.toString()));
+            } else {
+                System.out.println("Variable value is not known");
+            }
         }
     }
+
 
     // REQUIRES: lines[0] is the current line number always
     private Node processNode(String variableName, ArrayList<Integer> lines, Node parent) {

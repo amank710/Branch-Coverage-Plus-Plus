@@ -82,6 +82,8 @@ public class Z3Solver {
             NameExpr nameExpr = (NameExpr) expr;
             // Check if the variable value is statically determined
             if (staticVariableValues.containsKey(nameExpr.getNameAsString())) {
+                System.out.println(staticVariableValues);
+                System.out.println(staticVariableValues.get(nameExpr.getNameAsString()));
                 boolean value = staticVariableValues.get(nameExpr.getNameAsString());
                 return ctx.mkBool(value);
             } else {
@@ -100,6 +102,23 @@ public class Z3Solver {
     public Map<String, Boolean> getStaticVariableValues() {
         return this.staticVariableValues;
     }
+
+    public boolean isVariableValueKnown(String variableName) {
+        return this.staticVariableValues.containsKey(variableName);
+    }
+
+    public boolean getVariableValue(String variableName) {
+        if(isVariableValueKnown(variableName)) {
+            return this.staticVariableValues.get(variableName);
+        } else {
+            System.out.println("Variable value is not known");
+        }
+        return true;
+    }
+
+//    public boolean getValueFromVariable(String variableName) {
+//         boolean value = this.staticVariableValues.get(variableName);
+//    }
 
     public void setCondition(Expression condition) {
         this.condition = condition;

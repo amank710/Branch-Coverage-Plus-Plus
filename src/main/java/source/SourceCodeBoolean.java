@@ -49,10 +49,12 @@ class SourceCodeBoolean {
         // flag is now set to output. we know the value of output, so going forward
         // this variable should be tracked and both the if and the else conditon should not
         // be in the path
-        flag = output;
-        if (true) { // Satisfiable
+        output = true;
+        boolean something = output;
+        flag = something; //output = true
+        if (flag) { // Satisfiable
             output = true;
-        } else {
+        } else { // not satisfiable
             output = false;
         }
 
