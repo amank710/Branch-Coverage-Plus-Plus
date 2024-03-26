@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.Bootstrap;
@@ -31,28 +32,11 @@ import com.sun.jdi.VirtualMachine;
 
 class CodeStepper
 {
-    class CodeStepperMain
-    {
-        static Method executable;
+    private Map<String, Set<String>> instrumentedMethods;
 
-        public static void main(String[] args)
-        {
-            System.out.println("Executing code stepper...");
-            //executable.invoke(null);
-        }
-    }
-
-    public class CodeStepperTest
+    CodeStepper(Map<String, Set<String>> instrumentedMethods)
     {
-        public static void main(String[] args)
-        {
-            System.out.println("Executing code stepper test...");
-        }
-    }
-
-    CodeStepper(Method method)
-    {
-        RunnerSingleton.executable = method;
+        this.instrumentedMethods = instrumentedMethods;
     }
 
     private void enableClassPrepareRequest(VirtualMachine vm)
