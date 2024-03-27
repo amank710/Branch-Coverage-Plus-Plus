@@ -29,7 +29,6 @@ public class SimpleDemo
         return false;
     }
 
-    @Instrumentable
     public String foo()
     {
         return "foo";
