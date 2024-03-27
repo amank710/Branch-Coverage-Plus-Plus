@@ -14,9 +14,19 @@ public class SimpleDemo
         return x;
     }
 
-    public void test()
+    @Instrumentable
+    public boolean isSameSign(int x, int y)
     {
-        return;
+        if (x > 0 && y > 0)
+        {
+            return true;
+        }
+        else if (x < 0 && y < 0)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     @Instrumentable

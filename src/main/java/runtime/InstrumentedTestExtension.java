@@ -1,6 +1,10 @@
 package runtime;
 
+import common.util.Tuple;
+
+import com.sun.jdi.AbsentInformationException;
 import com.sun.tools.attach.VirtualMachine;
+
 import java.lang.reflect.Method;
 import java.io.File;
 import java.util.*;
@@ -10,13 +14,12 @@ import org.junit.jupiter.api.extension.*;
 
 public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback
 {
+    CodeStepper codeStepper;
+
     @Override
     public void beforeAll(ExtensionContext context) throws Exception
     {
         System.out.println("[InstrumentedTestExtension]: Finding instrumented types...");
-
-        List vms = VirtualMachine.list();
-        System.out.println("[InstrumentedTestExtension]: Found VMs: " + vms.toString());
 
         List<Class<?>> instClasses = getInstrumented(context.getRequiredTestClass());
         String[] classNames = Arrays.stream(instClasses.toArray()).map(Object::toString).toArray(String[]::new);
@@ -29,29 +32,30 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
             instrumentedMethodMapping.put(instClass.getName(), instMethods.stream().map(Method::getName).collect(Collectors.toSet()));
         }
 
-        CodeStepper codeStepper = new CodeStepper(instrumentedMethodMapping);
+        codeStepper = new CodeStepper(instrumentedMethodMapping);
         try
         {
             codeStepper.run();
-            System.out.println("Code stepper executed successfully");
+            System.out.println("CodeStepper attached to the target VM successfully!");
         }
-        catch (Exception e)
+        catch (AbsentInformationException e)
         {
-            System.out.println("Failed to execute code stepper");
-            e.printStackTrace();
+            System.out.println("[InstrumentedTestExtension] Please run the test with debug information enabled");
+            System.exit(1);
         }
     }
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception
     {
-        System.out.println("InstrumentedTestExtension: beforeEach. Test instance: " + context.getRequiredTestInstance().toString());
+        codeStepper.reset();
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception
     {
-        System.out.println("InstrumentedTestExtension: afterEach. Test instance: " + context.getRequiredTestInstance().toString());
+        Map<String, List<Tuple<Integer, Long>>> exploredTestPaths = codeStepper.getExploredPaths(); 
+        System.out.println("InstrumentedTestExtension: Explored paths: " + exploredTestPaths); 
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)

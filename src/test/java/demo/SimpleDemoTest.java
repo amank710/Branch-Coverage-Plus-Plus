@@ -17,7 +17,6 @@ public class SimpleDemoTest
     @Test
     public void testAbs()
     {
-        System.out.println("SimpleDemoTest: testAbs");
         SimpleDemo demo = new SimpleDemo();
         assertEquals(5, demo.abs(5));
     }
@@ -27,5 +26,12 @@ public class SimpleDemoTest
     {
         SimpleDemo demo = new SimpleDemo();
         assertEquals(5, demo.abs(-5));
+    }
+
+    @Test
+    public void testSameSign()
+    {
+        SimpleDemo demo = new SimpleDemo();
+        assertTrue(demo.isSameSign(5, 10));
     }
 }

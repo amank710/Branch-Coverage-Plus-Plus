@@ -23,6 +23,7 @@ import com.sun.jdi.event.LocatableEvent;
 import com.sun.jdi.event.StepEvent;
 import com.sun.jdi.IncompatibleThreadStateException;
 import com.sun.jdi.LocalVariable;
+import com.sun.jdi.Locatable;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
 import com.sun.jdi.request.BreakpointRequest;
@@ -42,8 +43,9 @@ class CodeStepper
 
     class EventManager extends Thread
     {
-        VirtualMachine vm;
         private Map<String, List<Tuple<Integer, Long>>> exploredPaths;
+        private StepRequest stepRequest;
+        private VirtualMachine vm;
 
         public EventManager(VirtualMachine vm)
         {
@@ -61,28 +63,56 @@ class CodeStepper
                 {
                     for (Event event : eventSet)
                     {
-                        System.out.println("Event: " + event.toString());
-                        if (event instanceof ClassPrepareEvent)
-                        {
-                            System.out.println("ClassPrepareEvent");
-                        }
-                        vm.resume();
-
+                        System.out.println(event);
                         if (event instanceof BreakpointEvent)
                         {
-                            System.out.println(((BreakpointEvent) event).location().lineNumber());
+                            if (stepRequest != null)
+                            {
+                                stepRequest.disable();
+                            }
+
+                            addExploredPath((Locatable) event);
+                            //addStepRequest((BreakpointEvent) event);
                         }
+
+                        if (event instanceof StepEvent)
+                        {
+                            addExploredPath((Locatable) event);
+                        }
+
+                        vm.resume();
                     }
                 }
             } catch (InterruptedException e) {
                 System.out.println("EventManager interrupted");
             }
-            System.out.println("EventManager exiting...");
         }
 
         public void reset()
         {
             exploredPaths = new HashMap<String, List<Tuple<Integer, Long>>>();
+        }
+
+        private void addExploredPath(Locatable event)
+        {
+            String methodName = event.location().method().name();
+            int lineNumber = event.location().lineNumber();
+            long codeIndex = event.location().codeIndex();
+
+            if (!exploredPaths.containsKey(methodName))
+            {
+                exploredPaths.put(methodName, new ArrayList<Tuple<Integer, Long>>());
+            }
+
+            exploredPaths.get(methodName).add(new Tuple<Integer, Long>(lineNumber, codeIndex));
+        }
+
+        private void addStepRequest(BreakpointEvent event)
+        {
+            ThreadReference thread = event.thread();
+            stepRequest = vm.eventRequestManager().createStepRequest(thread, StepRequest.STEP_MIN, StepRequest.STEP_OVER);
+            stepRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
+            stepRequest.enable();
         }
     }
 
@@ -104,49 +134,15 @@ class CodeStepper
         eventManager = new EventManager(vm); 
     }
 
-    private void enableClassPrepareRequest(VirtualMachine vm)
+    public Map<String, List<Tuple<Integer, Long>>> getExploredPaths()
     {
-        ClassPrepareRequest classPrepareRequest = vm.eventRequestManager().createClassPrepareRequest();
-        classPrepareRequest.addClassFilter(InstrumentedTestExtension.class.getName());
-        classPrepareRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
-        classPrepareRequest.enable();
+        return eventManager.exploredPaths;
     }
 
-    public void displayVariables(LocatableEvent event) throws IncompatibleThreadStateException, AbsentInformationException {
-        StackFrame stackFrame = event.thread().frame(0);
-        if(stackFrame.location().toString().contains(RunnerSingleton.class.getName())) {
-            Map<LocalVariable, Value> visibleVariables = stackFrame.getValues(stackFrame.visibleVariables());
-            System.out.println("Variables at " +stackFrame.location().toString() +  " > ");
-            for (Map.Entry<LocalVariable, Value> entry : visibleVariables.entrySet()) {
-                System.out.println(entry.getKey().name() + " = " + entry.getValue());
-            }
-        }
-    }
-
-    public void run() throws IOException, IllegalConnectorArgumentsException, VMStartException, InterruptedException, AbsentInformationException, IncompatibleThreadStateException
+    public void run() throws AbsentInformationException
     {
-        try {
-            setupInstrumentation();
-            eventManager.start();
-        } finally {
-            //System.out.println("Closing virtual machine...");
-            //InputStreamReader reader = new InputStreamReader(vm.process().getInputStream());
-            //InputStreamReader errorReader = new InputStreamReader(vm.process().getErrorStream());
-
-            //OutputStreamWriter writer = new OutputStreamWriter(System.out);
-            //OutputStreamWriter errorWriter = new OutputStreamWriter(System.err);
-
-            //char[] buffer = new char[512];
-            //char[] errorBuffer = new char[512];
-            //reader.read(buffer);
-            //errorReader.read(errorBuffer);
-
-            //writer.write(buffer);
-            //errorWriter.write(errorBuffer);
-
-            //writer.flush();
-            //errorWriter.flush();
-        }
+        setupInstrumentation();
+        eventManager.start();
     }
 
     public void reset()
