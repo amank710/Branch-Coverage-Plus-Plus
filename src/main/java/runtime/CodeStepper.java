@@ -3,8 +3,6 @@ package runtime;
 import common.util.Tuple;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.*;
 
 import com.sun.jdi.AbsentInformationException;
@@ -13,26 +11,17 @@ import com.sun.jdi.ClassType;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
-import com.sun.jdi.connect.LaunchingConnector;
-import com.sun.jdi.connect.VMStartException;
-import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.event.BreakpointEvent;
 import com.sun.jdi.event.Event;
 import com.sun.jdi.event.EventSet;
-import com.sun.jdi.event.LocatableEvent;
 import com.sun.jdi.event.StepEvent;
-import com.sun.jdi.IncompatibleThreadStateException;
-import com.sun.jdi.LocalVariable;
 import com.sun.jdi.Locatable;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
 import com.sun.jdi.request.BreakpointRequest;
-import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.StepRequest;
-import com.sun.jdi.StackFrame;
 import com.sun.jdi.ThreadReference;
-import com.sun.jdi.Value;
 import com.sun.jdi.VirtualMachine;
 
 class CodeStepper
@@ -63,7 +52,6 @@ class CodeStepper
                 {
                     for (Event event : eventSet)
                     {
-                        System.out.println(event);
                         if (event instanceof BreakpointEvent)
                         {
                             if (stepRequest != null)
@@ -72,7 +60,6 @@ class CodeStepper
                             }
 
                             addExploredPath((Locatable) event);
-                            //addStepRequest((BreakpointEvent) event);
                         }
 
                         if (event instanceof StepEvent)
@@ -110,7 +97,7 @@ class CodeStepper
         private void addStepRequest(BreakpointEvent event)
         {
             ThreadReference thread = event.thread();
-            stepRequest = vm.eventRequestManager().createStepRequest(thread, StepRequest.STEP_MIN, StepRequest.STEP_OVER);
+            stepRequest = vm.eventRequestManager().createStepRequest(thread, StepRequest.STEP_LINE, StepRequest.STEP_OVER);
             stepRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
             stepRequest.enable();
         }
@@ -181,6 +168,16 @@ class CodeStepper
                 for (String methodName : methodNames)
                 {
                     Method method = classType.methodsByName(methodName).get(0);
+
+                    byte[] bytecodes = method.bytecodes();
+                    System.out.print("Instrumenting method " + method.name() + " in class " + className + ": ");
+                    // print bytecodes in HEX
+                    for (byte b : bytecodes)
+                    {
+                       System.out.printf("0x%02X ", b);
+                    }
+                    System.out.println();
+                    
 
                     for (Location location : method.allLineLocations())
                     {
