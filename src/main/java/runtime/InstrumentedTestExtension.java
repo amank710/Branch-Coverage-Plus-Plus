@@ -15,7 +15,11 @@ import org.junit.jupiter.api.extension.*;
 public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCallback, BeforeAllCallback, BeforeEachCallback
 {
     CodeStepper codeStepper;
+
+    // actual lines executed during runtime
     Map<String, Set<Path>> instrumentedMethodPaths;
+
+    // input to the dynamic analysis
     Map<String, FunctionContext> instrumentedMethodContext;
 
     public InstrumentedTestExtension()
