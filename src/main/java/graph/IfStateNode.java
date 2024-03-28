@@ -112,18 +112,18 @@ public class IfStateNode extends Node{
         System.out.println(indentation + getLineNumber() + ": Condition(" + this.getCondition() + ")");
 
         if (this.getThenNode() != null) {
-            System.out.println(indentation + getLineNumber() + ": Then");
+            System.out.println(indentation + this.getThenNode().getLineNumber() + ": Then");
             this.getThenNode().visualize(depth + 1);
         } else {
-            System.out.println(indentation + getLineNumber() + ": Then is unsatisfiable" );
+            System.out.println(indentation  + "Then is unsatisfiable" );
         }
 
         // If there's an 'else' branch, visualize it as well
         if (this.getElseNode() != null) {
-            System.out.println(indentation + getLineNumber() + ": Else");
+            System.out.println(indentation + this.getElseNode().getLineNumber() + ": Else");
             this.getElseNode().visualize(depth + 1);
         } else {
-            System.out.println(indentation + getLineNumber() + ": Else is unsatisfiable");
+            System.out.println(indentation + "Else is unsatisfiable");
         }
 
         if (this.getChild() != null) {

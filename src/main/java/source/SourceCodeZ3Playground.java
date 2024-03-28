@@ -13,7 +13,7 @@ class SourceCodeZ3Playground {
 //        output = a;
         int abc = 5;
 
-        if (5 == 5) { // Satisfiable
+        if (abc < 5) { // Satisfiable
             output = a;
         } else {
             output = true;
