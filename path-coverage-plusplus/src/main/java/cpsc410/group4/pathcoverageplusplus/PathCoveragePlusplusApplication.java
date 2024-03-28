@@ -12,5 +12,4 @@ public class PathCoveragePlusplusApplication {
         SpringApplication.run(PathCoveragePlusplusApplication.class, args);
     }
 
-
 }
