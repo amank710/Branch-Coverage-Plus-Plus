@@ -92,8 +92,22 @@ public class IfStateNode extends Node{
             System.out.println("Found line " + line + " in " + this.getClass().getSimpleName());
             return this;
         } else {
+            Node newNode = null;
             if (getChild() != null) {
-                return getChild().searchByLine(line, false);
+                newNode = getChild().searchByLine(line, false);
+            }
+            if (newNode == null) {
+                if (thenNode != null) {
+                    newNode = thenNode.searchByLine(line, false);
+                }
+            }
+            if (newNode == null) {
+                if (elseNode != null) {
+                    newNode = elseNode.searchByLine(line, false);
+                }
+            }
+            if (newNode != null) {
+                return newNode;
             }
         }
         if (decrement) {

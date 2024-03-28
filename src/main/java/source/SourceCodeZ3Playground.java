@@ -13,8 +13,9 @@ class SourceCodeZ3Playground {
 //        output = a;
         int abc = 5;
 
-        if (abc < 5) { // Satisfiable
-            output = a;
+        if (abc == 5) { // Satisfiable
+            System.out.println("print");
+            output = true;
         } else {
             output = true;
         }

@@ -8,7 +8,7 @@ public class Main {
         Node root = variableMapBuilder.build();
         root.visualize();
 
-        int line = 33;
+        int line = 18;
         System.out.println(line);
         System.out.println(root.getStateFromLine(line)); // Should print the state of the variables at line
 ////        System.out.println(root.getDependenciesFromLine(line));
