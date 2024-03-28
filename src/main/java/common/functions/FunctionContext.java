@@ -7,7 +7,7 @@ import java.util.Set;
  *
  * It contains all the Paths that can be reached in the function.
  */
-class FunctionContext
+public class FunctionContext
 {
     Set<Path> paths;
 

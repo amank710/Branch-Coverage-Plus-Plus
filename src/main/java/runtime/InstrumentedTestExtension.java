@@ -1,20 +1,27 @@
 package runtime;
 
+import common.functions.FunctionContext;
+import common.functions.Path;
 import common.util.Tuple;
 
 import com.sun.jdi.AbsentInformationException;
-import com.sun.tools.attach.VirtualMachine;
 
 import java.lang.reflect.Method;
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.*;
 
-public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback
+public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCallback, BeforeAllCallback, BeforeEachCallback
 {
     CodeStepper codeStepper;
+    Map<String, Set<Path>> instrumentedMethodPaths;
+    Map<String, FunctionContext> instrumentedMethodContext;
+
+    public InstrumentedTestExtension()
+    {
+        instrumentedMethodPaths = new HashMap<>();
+    }
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception
@@ -54,8 +61,33 @@ public class InstrumentedTestExtension implements BeforeAllCallback, BeforeEachC
     @Override
     public void afterEach(ExtensionContext context) throws Exception
     {
+        System.out.println("[InstrumentedTestExtension]: Test: " + context.getDisplayName() + " completed");
         Map<String, List<Tuple<Integer, Long>>> exploredTestPaths = codeStepper.getExploredPaths(); 
-        System.out.println("InstrumentedTestExtension: Explored paths: " + exploredTestPaths); 
+        for (Map.Entry<String, List<Tuple<Integer, Long>>> entry : exploredTestPaths.entrySet())
+        {
+            String methodName = entry.getKey();
+            Set<Path> paths = instrumentedMethodPaths.getOrDefault(methodName, new HashSet<>());
+            Path path = new Path();
+            entry.getValue().forEach(t -> path.add(t.first()));
+            paths.add(path);
+            instrumentedMethodPaths.put(methodName, paths);
+        }
+    }
+
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception
+    {
+        System.out.println("[InstrumentedTestExtension]: Test suite completed");
+        System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
+        printCoverage();
+    }
+
+    private void printCoverage()
+    {
+        System.out.println("[InstrumentedTestExtension]: Printing coverage...");
+        for (Map.Entry<String, FunctionContext> entry : instrumentedMethodContext.entrySet())
+        {
+        }
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)

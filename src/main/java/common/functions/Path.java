@@ -1,5 +1,6 @@
 package common.functions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -7,12 +8,28 @@ import java.util.List;
  *
  * It corresponds to a set of line numbers.
  */
-class Path
+public class Path
 {
     private List<Integer> path;
+
+    public Path()
+    {
+        path = new ArrayList<>();
+    }
+
+    public void add(int lineNumber)
+    {
+        path.add(lineNumber);
+    }
 
     List<Integer> getPath()
     {
         return path;
     } 
+
+    @Override
+    public String toString()
+    {
+        return path.toString();
+    }
 }
