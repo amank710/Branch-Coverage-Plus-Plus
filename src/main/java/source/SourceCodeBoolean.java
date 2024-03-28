@@ -58,6 +58,28 @@ class SourceCodeBoolean {
             output = false;
         }
 
+
+        // No variable tracking integer comparison examples below
+        int abc = 5;
+
+        if (5 == 5) { // Satisfiable
+            output = a;
+        } else {
+            output = true;
+        }
+
+        if (abc != abc) { // Unsatisfiable
+            output = a;
+        } else {
+            output = true;
+        }
+
+        if (abc == abc && 4 > 5) { // Unsatisfiable
+            output = a;
+        } else {
+            output = true;
+        }
+
 //        if (flag) { // satisfiable
 //            output = true;
 //        } else if(flag && !flag ) { // Not satisfiable
