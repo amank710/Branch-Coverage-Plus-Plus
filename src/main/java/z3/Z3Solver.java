@@ -9,13 +9,12 @@ import java.util.Map;
 public class Z3Solver {
 
     private Expression condition;
-    private Map<String, Boolean> staticVariableValues;
+    private Map<String, LiteralExpr> staticVariableValues;
 
     public Z3Solver() {
         this.staticVariableValues = new HashMap<>();
-
     }
-    public Z3Solver(Expression condition, Map<String, Boolean> staticVariableValues) {
+    public Z3Solver(Expression condition, Map<String, LiteralExpr> staticVariableValues) {
         this.condition = condition;
         this.staticVariableValues = staticVariableValues;
     }
@@ -110,11 +109,13 @@ public class Z3Solver {
         } else if (expr instanceof NameExpr) {
             NameExpr nameExpr = (NameExpr) expr;
             // Check if the variable value is statically determined
-            if (staticVariableValues.containsKey(nameExpr.getNameAsString())) {
-                System.out.println(staticVariableValues);
-                System.out.println(staticVariableValues.get(nameExpr.getNameAsString()));
-                boolean value = staticVariableValues.get(nameExpr.getNameAsString());
-                return ctx.mkBool(value);
+            if (isVariableValueKnown(nameExpr.getNameAsString())) {
+                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                if (value.isBooleanLiteralExpr()){
+                    return ctx.mkBool(value.asBooleanLiteralExpr().getValue());
+                }
+                System.out.println("error");
+
             } else {
                 // This might indicate a simple variable condition.
                 return (BoolExpr) ctx.mkBoolConst(nameExpr.getNameAsString());
@@ -131,17 +132,34 @@ public class Z3Solver {
         } else if (expr instanceof NameExpr) {
             NameExpr nameExpr = (NameExpr) expr;
             // Adjust for handling integer variables, possibly also handle real variables
+            if (isVariableValueKnown(nameExpr.getNameAsString())) {
+                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                if (value.isIntegerLiteralExpr()) {
+                    return ctx.mkInt(value.asIntegerLiteralExpr().asInt());
+                }
+
+            }
+            System.out.println(nameExpr.getNameAsString());
+            System.out.println(getStaticVariableValues());
             return ctx.mkIntConst(nameExpr.getNameAsString());
         }
         // Extend to support real literals and variables if necessary
         throw new UnsupportedOperationException("Unsupported arithmetic expression type: " + expr.getClass());
     }
 
-    public void addStaticVariableValues(String variableName, boolean value) {
-        this.staticVariableValues.put(variableName, value);
+    public void addStaticVariableValues(String variableName, Expression value) {
+        if (value.isBooleanLiteralExpr()) {
+            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+        } else if (value.isIntegerLiteralExpr()) {
+            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+        }
     }
 
-    public Map<String, Boolean> getStaticVariableValues() {
+
+
+
+
+    public Map<String, LiteralExpr> getStaticVariableValues() {
         return this.staticVariableValues;
     }
 
@@ -149,13 +167,12 @@ public class Z3Solver {
         return this.staticVariableValues.containsKey(variableName);
     }
 
-    public boolean getVariableValue(String variableName) {
+    public LiteralExpr getVariableValue(String variableName) {
         if(isVariableValueKnown(variableName)) {
             return this.staticVariableValues.get(variableName);
         } else {
-            System.out.println("Variable value is not known");
+            return null;
         }
-        return true;
     }
 
 //    public boolean getValueFromVariable(String variableName) {
