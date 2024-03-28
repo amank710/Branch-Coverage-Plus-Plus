@@ -4,16 +4,23 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.expr.UnaryExpr;
+import com.github.javaparser.ast.expr.UnaryExpr.Operator;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
 
+import com.github.javaparser.ast.expr.BinaryExpr;
+
 import z3.Z3Solver;
 
 import java.util.*;
+
+import common.functions.Path;
 
 // This is a visitor class that visits the AST nodes and builds the variable map
 public class VariableVisitor extends VoidVisitorAdapter<Node> {
@@ -23,27 +30,44 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     // the argument is always be initialized to null
     private Node initialNode;
     private Node previousNode;
+    private Expression previousCondition;
+    private Z3Solver z3Solver;
+
+    private Path path;
+
 
     // Keep track of visited lines to avoid overwriting the state updated from if statements by the assignment statements
     private HashSet<Integer> visitedLine = new HashSet<>();
 
     public VariableVisitor(Node initialNode) {
         this.initialNode = initialNode;
+        this.z3Solver = new Z3Solver();
+        path = new Path();
     }
+
+
 
     @Override
     public void visit(IfStmt n, Node arg) {
+
+//        System.out.println(n.getThenStmt().getBegin().get());
+//        n.getThenStmt().getChildNodes().forEach(System.out::println);
+//        System.out.println(n.getThenStmt().getEnd().get().line);
         // Start by capturing the condition of the if statement.
-        Expression condition = n.getCondition();
-        Z3Solver checker = new Z3Solver(condition);
-        if (!checker.solve()) return;
+        Expression originalCondition =previousCondition;
+        Expression thenCondition = null;
+        if (previousCondition == null) {
+            thenCondition = n.getCondition();
+        } else {
+            thenCondition = new BinaryExpr(previousCondition, n.getCondition(), BinaryExpr.Operator.AND);
+        }
 
         // Prepare a list to hold dependencies from the binary expression in the condition,
         // assuming we're not dealing with arithmetic expressions for simplicity.
         List<Set<Integer>> dependencies = new ArrayList<>(this.previousNode.getDependencies());
         Set<Integer> binaryExprDependencies = new HashSet<>();
 
-        condition.ifBinaryExpr(binaryExpr -> {
+        thenCondition.ifBinaryExpr(binaryExpr -> {
             binaryExpr.getLeft().ifNameExpr(nameExpr ->
                     binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
             binaryExpr.getRight().ifNameExpr(nameExpr ->
@@ -53,19 +77,28 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         // Create a new IfStateNode, encapsulating the current state and the extracted condition.
         IfStateNode conditionalNode = new IfStateNode(
-                this.previousNode.getState(), dependencies, n.getBegin().get().line, condition
+                this.previousNode.getState(), dependencies, n.getBegin().get().line, thenCondition
         );
 
-        conditionalNode.setCondition(condition);
+        conditionalNode.setCondition(thenCondition);
         this.previousNode.setChild(conditionalNode);
+        this.z3Solver.setCondition(thenCondition);
 
+        if (this.z3Solver.solve()) {
         // Process the 'then' part of the if statement.
-        StateNode thenNode = new StateNode(conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line);
-        this.previousNode = thenNode;
-        // Visit the 'then' part of the if statement.
-        n.getThenStmt().accept(this, arg);
-        // Update the state of the 'then' node with the state after visiting the 'then' part.
-        conditionalNode.setThenNode(thenNode);
+            StateNode thenNode = new StateNode(conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line);
+            this.previousNode = thenNode;
+            this.previousCondition = thenCondition;
+            // Visit the 'then' part of the if statement.
+
+            //TODO: This is trying to get the line numbers of the else statement
+            n.getThenStmt().accept(this, arg);
+            StatementVisitor statementVisitor = new StatementVisitor();
+            n.getThenStmt().accept(statementVisitor, arg);
+            statementVisitor.getPath().forEach(line -> path.addLine(line));
+            // Update the state of the 'then' node with the state after visiting the 'then' part.
+            conditionalNode.setThenNode(thenNode);
+        }
 
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
         Node afterIfNode = new StateNode();
@@ -73,15 +106,30 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            Statement elseStmt = n.getElseStmt().get();
-            StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
-            this.previousNode = elseNode;
-            // Visit the 'else' part of the if statement.
-            elseStmt.accept(this, arg);
-            conditionalNode.setElseNode(elseNode);
+            Expression elseCondition = null;
+            if(originalCondition == null) {
+                elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
+            } else {
+                elseCondition = new BinaryExpr(originalCondition, new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT), BinaryExpr.Operator.AND);
+            }
+            this.z3Solver.setCondition(elseCondition);
+            if (this.z3Solver.solve()) {
+                this.previousCondition = elseCondition;
+                Statement elseStmt = n.getElseStmt().get();
+                StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
+                this.previousNode = elseNode;
+                // Visit the 'else' part of the if statement.
 
-            // Merge 'then' and 'else' states.
-            afterIfNode.setState(afterIfNode.mergeStates(this.previousNode.getState()));
+                //TODO: This is trying to get the line numbers of the else statement
+                elseStmt.accept(this, arg);
+                StatementVisitor statementVisitor = new StatementVisitor();
+                n.getThenStmt().accept(statementVisitor, arg);
+                statementVisitor.getPath().forEach(line -> path.addLine(line));
+
+                conditionalNode.setElseNode(elseNode);
+                // Merge 'then' and 'else' states.
+                afterIfNode.setState(afterIfNode.mergeStates(this.previousNode.getState()));
+            }
         }
 
         // Clean up by removing the last set of dependencies after leaving the if statement.
@@ -102,6 +150,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         afterIfNode.setLineNumber(n.getEnd().get().line);
         conditionalNode.setChild(afterIfNode);
 
+        this.previousCondition = originalCondition;
         this.previousNode = afterIfNode;
 
     }
@@ -114,6 +163,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             String variableName = var.getNameAsString();
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
+            processAssignStaticValue(variableName, var.getInitializer().get());
             previousNode = processNode(variableName, lines, previousNode);
         });
     }
@@ -130,7 +180,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         if (!valLineNumbers.isEmpty()) {
             lines.addAll(valLineNumbers);
         }
-
+        processAssignStaticValue(variableName, n.getValue());
         previousNode = processNode(variableName, lines, previousNode);
     }
 
@@ -145,6 +195,20 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         });
         n.getBody().ifPresent(body -> body.accept(this, arg));
     }
+
+    private void processAssignStaticValue(String variableName, Expression value) {
+        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr()) {
+            this.z3Solver.addStaticVariableValues(variableName, value);
+        } else {
+            // means the value is a variable
+            if(this.z3Solver.isVariableValueKnown(value.toString())){
+                this.z3Solver.addStaticVariableValues(variableName, this.z3Solver.getVariableValue(value.toString()));
+            } else {
+                System.out.println("Variable value is not known");
+            }
+        }
+    }
+
 
     // REQUIRES: lines[0] is the current line number always
     private Node processNode(String variableName, ArrayList<Integer> lines, Node parent) {

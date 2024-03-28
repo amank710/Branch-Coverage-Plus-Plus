@@ -7,12 +7,23 @@ import java.util.List;
  *
  * It corresponds to a set of line numbers.
  */
-class Path
+public class Path
 {
     private List<Integer> path;
+
+    public Path ()
+    {
+        path = new java.util.ArrayList<>();
+    }
 
     List<Integer> getPath()
     {
         return path;
-    } 
+    }
+
+    public void addLine(int line)
+    {
+        path.add(line);
+    }
+
 }

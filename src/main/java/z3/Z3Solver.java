@@ -1,16 +1,23 @@
 package z3;
 
 import com.github.javaparser.ast.expr.*;
-import com.microsoft.z3.BoolExpr;
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
+import com.microsoft.z3.*;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Z3Solver {
 
     private Expression condition;
+    private Map<String, LiteralExpr> staticVariableValues;
+
+    public Z3Solver() {
+        this.staticVariableValues = new HashMap<>();
+    }
+    public Z3Solver(Expression condition, Map<String, LiteralExpr> staticVariableValues) {
+        this.condition = condition;
+        this.staticVariableValues = staticVariableValues;
+    }
 
     public Z3Solver(Expression condition) {
         this.condition = condition;
@@ -41,14 +48,46 @@ public class Z3Solver {
     private BoolExpr parseExpression(Expression expr, Context ctx) throws Exception {
         if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr) expr;
-            BoolExpr left = parseExpression(binaryExpr.getLeft(), ctx);
-            BoolExpr right = parseExpression(binaryExpr.getRight(), ctx);
+            Expression leftExpr = binaryExpr.getLeft();
+            Expression rightExpr = binaryExpr.getRight();
 
             switch (binaryExpr.getOperator()) {
                 case AND:
-                    return ctx.mkAnd(left, right);
                 case OR:
-                    return ctx.mkOr(left, right);
+                    // Your existing code handles these cases
+                    BoolExpr leftBool = parseExpression(leftExpr, ctx);
+                    BoolExpr rightBool = parseExpression(rightExpr, ctx);
+                    switch (binaryExpr.getOperator()) {
+                        case AND:
+                            return ctx.mkAnd(leftBool, rightBool);
+                        case OR:
+                            return ctx.mkOr(leftBool, rightBool);
+                    }
+                    break;
+                case EQUALS:
+                case GREATER:
+                case GREATER_EQUALS:
+                case LESS:
+                case LESS_EQUALS:
+                case NOT_EQUALS:
+                    // Assuming the operands are integers for simplicity
+                    IntExpr leftInt = (IntExpr) parseArithmeticExpression(leftExpr, ctx);
+                    IntExpr rightInt = (IntExpr) parseArithmeticExpression(rightExpr, ctx);
+                    switch (binaryExpr.getOperator()) {
+                        case EQUALS:
+                            return ctx.mkEq(leftInt, rightInt);
+                        case GREATER:
+                            return ctx.mkGt(leftInt, rightInt);
+                        case GREATER_EQUALS:
+                            return ctx.mkGe(leftInt, rightInt);
+                        case LESS:
+                            return ctx.mkLt(leftInt, rightInt);
+                        case LESS_EQUALS:
+                            return ctx.mkLe(leftInt, rightInt);
+                        case NOT_EQUALS:
+                            return ctx.mkNot(ctx.mkEq(leftInt, rightInt));
+                    }
+                    break;
                 // Handle other binary operators...
                 default:
                     throw new UnsupportedOperationException("Unsupported operator: " + binaryExpr.getOperator());
@@ -69,10 +108,78 @@ public class Z3Solver {
             return ctx.mkBool(booleanExpr.getValue());
         } else if (expr instanceof NameExpr) {
             NameExpr nameExpr = (NameExpr) expr;
-            // This might indicate a simple variable condition.
-            return (BoolExpr) ctx.mkBoolConst(nameExpr.getNameAsString());
+            // Check if the variable value is statically determined
+            if (isVariableValueKnown(nameExpr.getNameAsString())) {
+                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                if (value.isBooleanLiteralExpr()){
+                    return ctx.mkBool(value.asBooleanLiteralExpr().getValue());
+                }
+                System.out.println("error");
+
+            } else {
+                // This might indicate a simple variable condition.
+                return (BoolExpr) ctx.mkBoolConst(nameExpr.getNameAsString());
+            }
         }
         // Handle other expression types...
         throw new IllegalArgumentException("Unsupported expression type: " + expr.getClass());
+    }
+
+    private Expr parseArithmeticExpression(Expression expr, Context ctx) throws Exception {
+        if (expr instanceof IntegerLiteralExpr) {
+            IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
+            return ctx.mkInt(intExpr.asInt());
+        } else if (expr instanceof NameExpr) {
+            NameExpr nameExpr = (NameExpr) expr;
+            // Adjust for handling integer variables, possibly also handle real variables
+            if (isVariableValueKnown(nameExpr.getNameAsString())) {
+                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                if (value.isIntegerLiteralExpr()) {
+                    return ctx.mkInt(value.asIntegerLiteralExpr().asInt());
+                }
+
+            }
+            System.out.println(nameExpr.getNameAsString());
+            System.out.println(getStaticVariableValues());
+            return ctx.mkIntConst(nameExpr.getNameAsString());
+        }
+        // Extend to support real literals and variables if necessary
+        throw new UnsupportedOperationException("Unsupported arithmetic expression type: " + expr.getClass());
+    }
+
+    public void addStaticVariableValues(String variableName, Expression value) {
+        if (value.isBooleanLiteralExpr()) {
+            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+        } else if (value.isIntegerLiteralExpr()) {
+            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+        }
+    }
+
+
+
+
+
+    public Map<String, LiteralExpr> getStaticVariableValues() {
+        return this.staticVariableValues;
+    }
+
+    public boolean isVariableValueKnown(String variableName) {
+        return this.staticVariableValues.containsKey(variableName);
+    }
+
+    public LiteralExpr getVariableValue(String variableName) {
+        if(isVariableValueKnown(variableName)) {
+            return this.staticVariableValues.get(variableName);
+        } else {
+            return null;
+        }
+    }
+
+//    public boolean getValueFromVariable(String variableName) {
+//         boolean value = this.staticVariableValues.get(variableName);
+//    }
+
+    public void setCondition(Expression condition) {
+        this.condition = condition;
     }
 }

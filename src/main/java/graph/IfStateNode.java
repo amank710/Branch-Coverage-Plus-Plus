@@ -92,8 +92,22 @@ public class IfStateNode extends Node{
             System.out.println("Found line " + line + " in " + this.getClass().getSimpleName());
             return this;
         } else {
+            Node newNode = null;
             if (getChild() != null) {
-                return getChild().searchByLine(line, false);
+                newNode = getChild().searchByLine(line, false);
+            }
+            if (newNode == null) {
+                if (thenNode != null) {
+                    newNode = thenNode.searchByLine(line, false);
+                }
+            }
+            if (newNode == null) {
+                if (elseNode != null) {
+                    newNode = elseNode.searchByLine(line, false);
+                }
+            }
+            if (newNode != null) {
+                return newNode;
             }
         }
         if (decrement) {
@@ -111,13 +125,19 @@ public class IfStateNode extends Node{
         String indentation = createIndentation(depth);
         System.out.println(indentation + getLineNumber() + ": Condition(" + this.getCondition() + ")");
 
-        // Visualize the 'then' branch, increasing the depth for indentation
-        this.getThenNode().visualize(depth + 1);
+        if (this.getThenNode() != null) {
+            System.out.println(indentation + this.getThenNode().getLineNumber() + ": Then");
+            this.getThenNode().visualize(depth + 1);
+        } else {
+            System.out.println(indentation  + "Then is unsatisfiable" );
+        }
 
         // If there's an 'else' branch, visualize it as well
         if (this.getElseNode() != null) {
-            System.out.println(indentation + getLineNumber() + ": Else");
+            System.out.println(indentation + this.getElseNode().getLineNumber() + ": Else");
             this.getElseNode().visualize(depth + 1);
+        } else {
+            System.out.println(indentation + "Else is unsatisfiable");
         }
 
         if (this.getChild() != null) {
