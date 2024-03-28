@@ -4,6 +4,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.expr.UnaryExpr;
@@ -19,6 +20,8 @@ import z3.Z3Solver;
 
 import java.util.*;
 
+import common.functions.Path;
+
 // This is a visitor class that visits the AST nodes and builds the variable map
 public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
@@ -30,6 +33,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     private Expression previousCondition;
     private Z3Solver z3Solver;
 
+    private Path path;
+
 
     // Keep track of visited lines to avoid overwriting the state updated from if statements by the assignment statements
     private HashSet<Integer> visitedLine = new HashSet<>();
@@ -37,10 +42,17 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public VariableVisitor(Node initialNode) {
         this.initialNode = initialNode;
         this.z3Solver = new Z3Solver();
+        path = new Path();
     }
+
+
 
     @Override
     public void visit(IfStmt n, Node arg) {
+
+//        System.out.println(n.getThenStmt().getBegin().get());
+//        n.getThenStmt().getChildNodes().forEach(System.out::println);
+//        System.out.println(n.getThenStmt().getEnd().get().line);
         // Start by capturing the condition of the if statement.
         Expression originalCondition =previousCondition;
         Expression thenCondition = null;
@@ -78,7 +90,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             this.previousNode = thenNode;
             this.previousCondition = thenCondition;
             // Visit the 'then' part of the if statement.
+
+            //TODO: This is trying to get the line numbers of the else statement
             n.getThenStmt().accept(this, arg);
+            StatementVisitor statementVisitor = new StatementVisitor();
+            n.getThenStmt().accept(statementVisitor, arg);
+            statementVisitor.getPath().forEach(line -> path.addLine(line));
             // Update the state of the 'then' node with the state after visiting the 'then' part.
             conditionalNode.setThenNode(thenNode);
         }
@@ -102,7 +119,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
                 this.previousNode = elseNode;
                 // Visit the 'else' part of the if statement.
+
+                //TODO: This is trying to get the line numbers of the else statement
                 elseStmt.accept(this, arg);
+                StatementVisitor statementVisitor = new StatementVisitor();
+                n.getThenStmt().accept(statementVisitor, arg);
+                statementVisitor.getPath().forEach(line -> path.addLine(line));
+
                 conditionalNode.setElseNode(elseNode);
                 // Merge 'then' and 'else' states.
                 afterIfNode.setState(afterIfNode.mergeStates(this.previousNode.getState()));

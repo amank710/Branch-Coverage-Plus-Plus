@@ -15,10 +15,14 @@ class SourceCodeZ3Playground {
 
         if (abc == 5) { // Satisfiable
             System.out.println("print");
-            output = true;
-        } else {
+            if (flag)  { // Satisfiable
+                output = true;
+            } else {
+                output = false;
+            }
             output = true;
         }
+        //[19,17, 23][21,17, 23]
 
 
         if (abc != abc) { // Unsatisfiable
