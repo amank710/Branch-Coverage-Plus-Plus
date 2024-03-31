@@ -9,12 +9,12 @@ import java.util.Map;
 public class Z3Solver {
 
     private Expression condition;
-    private Map<String, LiteralExpr> staticVariableValues;
+    private Map<String, Expression> staticVariableValues;
 
     public Z3Solver() {
         this.staticVariableValues = new HashMap<>();
     }
-    public Z3Solver(Expression condition, Map<String, LiteralExpr> staticVariableValues) {
+    public Z3Solver(Expression condition, Map<String, Expression> staticVariableValues) {
         this.condition = condition;
         this.staticVariableValues = staticVariableValues;
     }
@@ -72,6 +72,8 @@ public class Z3Solver {
                 case NOT_EQUALS:
                     // Assuming the operands are integers for simplicity
                     IntExpr leftInt = (IntExpr) parseArithmeticExpression(leftExpr, ctx);
+                    System.out.println("leftInt");
+                    System.out.println(leftInt);
                     IntExpr rightInt = (IntExpr) parseArithmeticExpression(rightExpr, ctx);
                     switch (binaryExpr.getOperator()) {
                         case EQUALS:
@@ -110,7 +112,7 @@ public class Z3Solver {
             NameExpr nameExpr = (NameExpr) expr;
             // Check if the variable value is statically determined
             if (isVariableValueKnown(nameExpr.getNameAsString())) {
-                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                Expression value = getVariableValue(nameExpr.getNameAsString());
                 if (value.isBooleanLiteralExpr()){
                     return ctx.mkBool(value.asBooleanLiteralExpr().getValue());
                 }
@@ -148,9 +150,25 @@ public class Z3Solver {
             NameExpr nameExpr = (NameExpr) expr;
             // Handling integer variables
             if (isVariableValueKnown(nameExpr.getNameAsString())) {
-                LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
+                Expression value = getVariableValue(nameExpr.getNameAsString());
+                System.out.println("aa");
+                System.out.println(value);
                 if (value.isIntegerLiteralExpr()) {
                     return ctx.mkInt(value.asIntegerLiteralExpr().asInt());
+                } else if (value.isUnaryExpr()) {
+                    UnaryExpr unaryExpr = (UnaryExpr) value;
+                    if (unaryExpr.getOperator() == UnaryExpr.Operator.MINUS) {
+                        // Process the inner expression, assuming it's an integer
+                        Expr innerExpr = parseArithmeticExpression(unaryExpr.getExpression(), ctx);
+                        if (innerExpr instanceof IntExpr) {
+                            // Apply negation
+                            return ctx.mkUnaryMinus((IntExpr) innerExpr);
+                        } else {
+                            throw new UnsupportedOperationException("Negation applied to a non-integer expression.");
+                        }
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported unary operator: " + unaryExpr.getOperator());
+                    }
                 }
                 // Add handling for boolean values if needed
             }
@@ -160,29 +178,37 @@ public class Z3Solver {
         throw new UnsupportedOperationException("Unsupported arithmetic expression type: " + expr.getClass());
     }
 
-
     public void addStaticVariableValues(String variableName, Expression value) {
         if (value.isBooleanLiteralExpr()) {
-            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+            this.staticVariableValues.put(variableName,  value);
         } else if (value.isIntegerLiteralExpr()) {
-            this.staticVariableValues.put(variableName, (LiteralExpr) value);
+            this.staticVariableValues.put(variableName, value);
+        } else if (value.isUnaryExpr()) {
+            System.out.println(value);
+            this.staticVariableValues.put(variableName, value);
+        } else {
+            System.out.println("error");
         }
     }
 
 
-
-
-
-    public Map<String, LiteralExpr> getStaticVariableValues() {
+    public Map<String, Expression> getStaticVariableValues() {
         return this.staticVariableValues;
     }
 
     public boolean isVariableValueKnown(String variableName) {
+//        System.out.println("variableName");
+//        System.out.println(variableName);
+//        System.out.println(this.staticVariableValues);
+//        System.out.println(this.staticVariableValues.containsKey(variableName));
         return this.staticVariableValues.containsKey(variableName);
     }
 
-    public LiteralExpr getVariableValue(String variableName) {
+    public Expression getVariableValue(String variableName) {
         if(isVariableValueKnown(variableName)) {
+//            System.out.println("variableName");
+//            System.out.println("aaa");
+//            System.out.println(this.staticVariableValues.get(variableName));
             return this.staticVariableValues.get(variableName);
         } else {
             return null;

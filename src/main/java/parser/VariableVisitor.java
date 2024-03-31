@@ -343,8 +343,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     }
 
     private void processAssignStaticValue(String variableName, Expression value) {
-        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr()) {
+        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr()) {
             this.z3Solver.addStaticVariableValues(variableName, value);
+            System.out.println(this.z3Solver.getStaticVariableValues());
         } else {
             // means the value is a variable
             if(this.z3Solver.isVariableValueKnown(value.toString())){
