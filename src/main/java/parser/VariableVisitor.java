@@ -139,7 +139,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     System.out.println("key" +key);
                     System.out.println("value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
-                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line));
+                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line)); // add to parent path instead of path list and add the parent path to the path list
                     outerConditional.put(key, pathList);
 
                     outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
@@ -229,14 +229,15 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     System.out.println("else key" +key);
                     System.out.println("else value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
-
+                    // if statement visitor get path is empty, dont add to pathList because of repeating paths
                     ArrayList<Integer> parentPath = outerConditionalPath.pop();
                     parentPath.addAll(statementVisitor.getPath());
 
-                    pathList.add(parentPath);
-                    outerConditional.put(key, pathList);
-                    // \\\\ the statement below is not tested and may produce sus results \\\\\\\
-                    outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
+                    if (statementVisitor.getSize() != 0) {
+                        pathList.add(parentPath);
+                        outerConditional.put(key, pathList);
+                    }
+                    outerConditionalPath.push(new ArrayList<>(parentPath));
                     System.out.println("Here 2"+outerConditionalPath);
                 } else {
                     ArrayList<Integer> ifLines = new ArrayList<>();

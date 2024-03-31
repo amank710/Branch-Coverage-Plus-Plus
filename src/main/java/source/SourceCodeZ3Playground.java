@@ -13,7 +13,7 @@ class SourceCodeZ3Playground {
 //        output = a;
         int abc = 5;
 
-        if (abc == 5) { // Satisfiable
+        if (ff > 4) { // Satisfiable
             System.out.println("print");
             if (flag)  { // Satisfiable
                 output = true;
@@ -26,6 +26,18 @@ class SourceCodeZ3Playground {
                 output = false;
             }
             output = true;
+        } else {
+            output = false;
+            if (ff < 2) {
+                output = false;
+            } else {
+                if (ff > 3) {
+                    output = false;
+                } else {
+                    output = true;
+                }
+            }
+
         }
         //[19,17, 23][21,17, 23]
 
