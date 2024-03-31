@@ -72,8 +72,6 @@ public class Z3Solver {
                 case NOT_EQUALS:
                     // Assuming the operands are integers for simplicity
                     IntExpr leftInt = (IntExpr) parseArithmeticExpression(leftExpr, ctx);
-                    System.out.println("leftInt");
-                    System.out.println(leftInt);
                     IntExpr rightInt = (IntExpr) parseArithmeticExpression(rightExpr, ctx);
                     switch (binaryExpr.getOperator()) {
                         case EQUALS:
@@ -151,8 +149,6 @@ public class Z3Solver {
             // Handling integer variables
             if (isVariableValueKnown(nameExpr.getNameAsString())) {
                 Expression value = getVariableValue(nameExpr.getNameAsString());
-                System.out.println("aa");
-                System.out.println(value);
                 if (value.isIntegerLiteralExpr()) {
                     return ctx.mkInt(value.asIntegerLiteralExpr().asInt());
                 } else if (value.isUnaryExpr()) {
@@ -184,7 +180,6 @@ public class Z3Solver {
         } else if (value.isIntegerLiteralExpr()) {
             this.staticVariableValues.put(variableName, value);
         } else if (value.isUnaryExpr()) {
-            System.out.println(value);
             this.staticVariableValues.put(variableName, value);
         } else {
             System.out.println("error");
@@ -197,18 +192,11 @@ public class Z3Solver {
     }
 
     public boolean isVariableValueKnown(String variableName) {
-//        System.out.println("variableName");
-//        System.out.println(variableName);
-//        System.out.println(this.staticVariableValues);
-//        System.out.println(this.staticVariableValues.containsKey(variableName));
         return this.staticVariableValues.containsKey(variableName);
     }
 
     public Expression getVariableValue(String variableName) {
         if(isVariableValueKnown(variableName)) {
-//            System.out.println("variableName");
-//            System.out.println("aaa");
-//            System.out.println(this.staticVariableValues.get(variableName));
             return this.staticVariableValues.get(variableName);
         } else {
             return null;
