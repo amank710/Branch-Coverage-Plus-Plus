@@ -192,6 +192,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
+            outerConditionalPath.pop();
             Expression elseCondition = null;
             if(originalCondition == null) {
                 elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
@@ -229,10 +230,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     System.out.println("else value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
 
-                    outerConditionalPath.pop();
-                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line));
-                    outerConditional.put(key, pathList);
+                    ArrayList<Integer> parentPath = outerConditionalPath.pop();
+                    parentPath.addAll(statementVisitor.getPath());
 
+                    pathList.add(parentPath);
+                    outerConditional.put(key, pathList);
+                    // \\\\ the statement below is not tested and may produce sus results \\\\\\\
                     outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
                     System.out.println("Here 2"+outerConditionalPath);
                 } else {

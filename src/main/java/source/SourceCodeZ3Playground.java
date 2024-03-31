@@ -32,7 +32,7 @@ class SourceCodeZ3Playground {
 
         if (flag) {
             output = false;
-            if (flag) {
+            if (ff == 5) {
                 output = false;
             } else {
                 output = true;
