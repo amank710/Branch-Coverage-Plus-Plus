@@ -101,7 +101,7 @@ public class Z3Solver {
                     return ctx.mkNot(inner);
                 // Handle other unary operators...
                 default:
-                    throw new UnsupportedOperationException("Unsupported operator: " + unaryExpr.getOperator());
+                    throw new UnsupportedOperationException("Unsupported operator: !!!!!!" + unaryExpr.getOperator());
             }
         } else if (expr instanceof BooleanLiteralExpr) {
             BooleanLiteralExpr booleanExpr = (BooleanLiteralExpr) expr;
@@ -129,23 +129,37 @@ public class Z3Solver {
         if (expr instanceof IntegerLiteralExpr) {
             IntegerLiteralExpr intExpr = (IntegerLiteralExpr) expr;
             return ctx.mkInt(intExpr.asInt());
+        } else if (expr instanceof UnaryExpr) {
+            UnaryExpr unaryExpr = (UnaryExpr) expr;
+            // Check if the UnaryExpr is a negation
+            if (unaryExpr.getOperator() == UnaryExpr.Operator.MINUS) {
+                // Process the inner expression, assuming it's an integer
+                Expr innerExpr = parseArithmeticExpression(unaryExpr.getExpression(), ctx);
+                if (innerExpr instanceof IntExpr) {
+                    // Apply negation
+                    return ctx.mkUnaryMinus((IntExpr) innerExpr);
+                } else {
+                    throw new UnsupportedOperationException("Negation applied to a non-integer expression.");
+                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported unary operator: " + unaryExpr.getOperator());
+            }
         } else if (expr instanceof NameExpr) {
             NameExpr nameExpr = (NameExpr) expr;
-            // Adjust for handling integer variables, possibly also handle real variables
+            // Handling integer variables
             if (isVariableValueKnown(nameExpr.getNameAsString())) {
                 LiteralExpr value = getVariableValue(nameExpr.getNameAsString());
                 if (value.isIntegerLiteralExpr()) {
                     return ctx.mkInt(value.asIntegerLiteralExpr().asInt());
                 }
-
+                // Add handling for boolean values if needed
             }
-            System.out.println(nameExpr.getNameAsString());
-            System.out.println(getStaticVariableValues());
             return ctx.mkIntConst(nameExpr.getNameAsString());
         }
-        // Extend to support real literals and variables if necessary
+        // Extend to support more types as necessary
         throw new UnsupportedOperationException("Unsupported arithmetic expression type: " + expr.getClass());
     }
+
 
     public void addStaticVariableValues(String variableName, Expression value) {
         if (value.isBooleanLiteralExpr()) {
