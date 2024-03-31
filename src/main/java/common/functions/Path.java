@@ -16,7 +16,7 @@ public class Path
         path = new java.util.ArrayList<>();
     }
 
-    List<Integer> getPath()
+    public List<Integer> getPath()
     {
         return path;
     }

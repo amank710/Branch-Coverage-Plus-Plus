@@ -22,7 +22,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
         n.getStatements().forEach(stmt -> {
             if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
-                appendPath(stmt.getBegin().get().line);
+                setPath(stmt.getBegin().get().line);
             }
         });
 
@@ -32,7 +32,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     public List<Integer> getPath() {
         return lines;
     }
-    public void appendPath(int line) {
+    public void setPath(int line) {
         lines.add(line);
     }
 }

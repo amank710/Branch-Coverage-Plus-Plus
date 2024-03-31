@@ -1,7 +1,7 @@
 package source;
 
 class SourceCodeZ3Playground {
-    public static Boolean booleanFlags(boolean flag) {
+    public static Boolean booleanFlags(boolean flag, int ff) {
 
         // No variable tracking
         // output is true and a is false but line 12 is satisfiable and line 14 is not
@@ -17,6 +17,11 @@ class SourceCodeZ3Playground {
             System.out.println("print");
             if (flag)  { // Satisfiable
                 output = true;
+                if (ff == 5) {
+                    output = false;
+                } else {
+                    output = true;
+                }
             } else {
                 output = false;
             }
@@ -25,17 +30,28 @@ class SourceCodeZ3Playground {
         //[19,17, 23][21,17, 23]
 
 
-        if (abc != abc) { // Unsatisfiable
-            output = a;
+        if (flag) {
+            output = false;
+            if (flag) {
+                output = false;
+            } else {
+                output = true;
+            }
         } else {
             output = true;
         }
 
-        if (abc == abc && 4 > 5) { // Unsatisfiable
-            output = a;
-        } else {
-            output = true;
-        }
+//        if (abc != abc) { // Unsatisfiable
+//            output = a;
+//        } else {
+//            output = true;
+//        }
+//
+//        if (abc == abc && 4 > 5) { // Unsatisfiable
+//            output = a;
+//        } else {
+//            output = true;
+//        }
 
 //        if (a) {
 //
