@@ -81,7 +81,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             String methodName = entry.getKey();
             Set<Path> paths = instrumentedMethodPaths.getOrDefault(methodName, new HashSet<>());
             Path path = new Path();
-            entry.getValue().forEach(t -> path.add(t.first()));
+            entry.getValue().forEach(t -> path.addLine(t.first()));
             paths.add(path);
             instrumentedMethodPaths.put(methodName, paths);
         }
