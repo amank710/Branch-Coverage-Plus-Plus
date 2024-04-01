@@ -313,11 +313,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
 
     @Override
-    public void visit(ReturnStmt n, Node arg) {
-        // Process the node to update the state with variable declarations
-
-    }
-    @Override
     public void visit(VariableDeclarationExpr n, Node arg) {
         // Process the node to update the state with variable declarations
         n.getVariables().forEach(var -> {
