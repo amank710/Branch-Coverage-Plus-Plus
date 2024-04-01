@@ -3,6 +3,8 @@ package runtime;
 import common.functions.FunctionContext;
 import common.functions.Path;
 import common.util.Tuple;
+import graph.Node;
+import parser.VariableMapBuilder;
 
 import com.sun.jdi.AbsentInformationException;
 
@@ -38,6 +40,13 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
         Map<String, Set<String>> instrumentedMethodMapping = new HashMap<>();
         for (Class<?> instClass : instClasses) {
+            String path_home = Optional.ofNullable(System.getProperty("PATH_COVERAGE_SOURCE_HOME")).orElseThrow(() -> new IllegalArgumentException("Please set the PATH_COVERAGE_SOURCE_HOME environment variable"));
+            String local_source_path = instClass.getPackage().getName().replaceAll("\\.", "/");
+            System.out.println("[InstrumentedTestExtension]: Trying to find source code at " + path_home + "/" + local_source_path + "/" + instClass.getSimpleName() + ".java");
+
+            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path_home + "/" + local_source_path, instClass.getSimpleName() + ".java");
+            Node root = variableMapBuilder.build();
+
             Set<Method> instMethods = getInstrumentable(instClass);
             System.out.println("[InstrumentedTestExtension]: Found instrumentable methods for " + instClass.getName() + ": " + instMethods);
             instrumentedMethodMapping.put(instClass.getName(), instMethods.stream().map(Method::getName).collect(Collectors.toSet()));
@@ -89,9 +98,6 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
     private void printCoverage()
     {
         System.out.println("[InstrumentedTestExtension]: Printing coverage...");
-        for (Map.Entry<String, FunctionContext> entry : instrumentedMethodContext.entrySet())
-        {
-        }
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
