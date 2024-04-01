@@ -135,14 +135,39 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 if (key.get(0) < ifBeginLine && key.get(1) > ifEndLine) {
 
                     ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
-
+                    int pathListSize = pathList.size();
                     System.out.println("key" +key);
                     System.out.println("value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
-                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line));
-                    outerConditional.put(key, pathList);
 
-                    outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
+                    ArrayList<Integer> parentPath = new ArrayList<>(outerConditionalPath.peek());
+                    parentPath.addAll(statementVisitor.getPath());
+                    System.out.println("Parent Path If" + parentPath);
+
+                    ArrayList<Integer> currentPath = new ArrayList<>(pathList.get(pathListSize-1));
+                    currentPath.addAll(statementVisitor.getPath());
+                    System.out.println("Current Path If" + currentPath);
+                    boolean pathesMatch = true;
+                    if (parentPath.size() == currentPath.size()) {
+                        for (int i=0; i<parentPath.size();i++) {
+                            if (parentPath.get(i) != currentPath.get(i)) {
+                                pathesMatch = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        pathesMatch = false;
+                    }
+
+                    if (pathesMatch) {
+                        pathList.remove(pathListSize-1);
+                        pathList.add(pathListSize-1, currentPath);
+                        outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize-1)));
+                    } else {
+                        pathList.add(parentPath);
+                        outerConditionalPath.push(new ArrayList<>(parentPath));
+                    }
+                    outerConditional.put(key, pathList);
                     System.out.println("Here 2"+outerConditionalPath);
                 } else {
                     ArrayList<Integer> ifLines = new ArrayList<>();
@@ -193,6 +218,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
             outerConditionalPath.pop();
+
             Expression elseCondition = null;
             if(originalCondition == null) {
                 elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
@@ -225,18 +251,47 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 if (key.get(0) < elseBeginLine && key.get(1) > elseEndLine) {
 
                     ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
+                    int pathListSize = pathList.size();
 
                     System.out.println("else key" +key);
                     System.out.println("else value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
+                    ArrayList<Integer> parentPath;
+                    if (!outerConditionalPath.isEmpty()) {
+                        parentPath = new ArrayList<>(outerConditionalPath.pop());
+                    } else {
+                        parentPath = new ArrayList<>();
+                    }
 
-                    ArrayList<Integer> parentPath = outerConditionalPath.pop();
                     parentPath.addAll(statementVisitor.getPath());
+                    System.out.println("Parent Path Else" + parentPath);
 
-                    pathList.add(parentPath);
+                    ArrayList<Integer> currentPath = new ArrayList<>(pathList.get(pathListSize-1));
+                    currentPath.addAll(statementVisitor.getPath());
+                    System.out.println("Current Path Else" + currentPath);
+                    boolean pathesMatch = true;
+                    if (parentPath.size() == currentPath.size()) {
+                        for (int i=0; i<parentPath.size();i++) {
+                            if (parentPath.get(i) != currentPath.get(i)) {
+                                pathesMatch = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        pathesMatch = false;
+                    }
+
+                    if (statementVisitor.getSize() != 0) {
+                        if (pathesMatch) {
+                            pathList.remove(pathListSize-1);
+                            pathList.add(pathListSize-1, currentPath);
+                            outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize-1)));
+                        } else {
+                            pathList.add(parentPath);
+                            outerConditionalPath.push(new ArrayList<>(parentPath));
+                        }
+                    }
                     outerConditional.put(key, pathList);
-                    // \\\\ the statement below is not tested and may produce sus results \\\\\\\
-                    outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
                     System.out.println("Here 2"+outerConditionalPath);
                 } else {
                     ArrayList<Integer> ifLines = new ArrayList<>();
@@ -298,7 +353,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         this.previousCondition = originalCondition;
         this.previousNode = afterIfNode;
-        System.out.println("Path " + path.getPath());
+        System.out.println("Path " + paths);
     }
 
     @Override

@@ -35,4 +35,8 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     public void setPath(int line) {
         lines.add(line);
     }
+
+    public Integer getSize() {
+        return lines.size();
+    }
 }
