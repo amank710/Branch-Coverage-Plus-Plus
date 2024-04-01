@@ -1,5 +1,7 @@
 package common.functions;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -11,8 +13,19 @@ public class FunctionContext
 {
     Set<Path> paths;
 
-    Set<Path> getPaths()
+    public FunctionContext() {
+        paths = new HashSet<>();
+    }
+    public Set<Path> getPaths()
     {
         return paths;
+    }
+
+//    public void setPaths(Set<Path> paths) {
+//        this.paths = paths;
+//    }
+
+    public void setPath(Path path) {
+        this.paths.add(path);
     }
 }

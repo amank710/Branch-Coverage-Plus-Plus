@@ -12,24 +12,18 @@ public class Path
 {
     private List<Integer> path;
 
-    public Path()
+    public Path ()
     {
-        path = new ArrayList<>();
+        path = new java.util.ArrayList<>();
     }
 
-    public void add(int lineNumber)
-    {
-        path.add(lineNumber);
-    }
-
-    List<Integer> getPath()
+    public List<Integer> getPath()
     {
         return path;
-    } 
+    }
 
-    @Override
-    public String toString()
+    public void addLine(int line)
     {
-        return path.toString();
+        path.add(line);
     }
 }

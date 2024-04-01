@@ -275,3 +275,44 @@ While the Check-in goals for Check-ins 4 and 5 should remain relatively the same
 - In the original timeline, we expected to have the core static and dynamic analysis components to be complete by now. We are behind schedule and we need to move this goal to Check-in 5.
 - We expect to start working on the user interface by Check-In 5 and completing it during the week of April 1.
 - With this timeline, we expect to complete the final user study early in the week of April 1.
+
+# Check-in 5
+### Status of final user study; any feedback and changes planned.
+
+- We plan to conduct the user study once the following prerequisites are met:
+    - Completion of the user interface.
+    - Development of the Minimum Viable Product (MVP) for program slicing, ensuring all parts function as intended.
+        - If certain parts are not functional, they will not be included.
+        - Necessary changes to the data structure will be made to facilitate implementation by the Dynamic team.
+        - Following the MVP phase, the tool will be expanded to handle integers in addition to booleans.
+- As stated previous Check in report, the user study will involve participants working with a complex function featuring numerous branching paths. This study is scheduled for the week of April 1st.
+
+## Plans for final video (possible draft version).
+
+- A team member will prepare a random test suite scenario, offering an explanation of the underlying code.
+- This will be followed by a demonstration of the code and a live static/dynamic test to illustrate the tool's practical application and its impact.
+- The video will conclude with a segment on the improvements made based on feedback from the initial to the final user studies.
+
+### Planned timeline for the remaining days.
+
+- March 30th
+    - Complate the static and dynamic components
+- April 1st
+    - Integrate the static and dynamic components
+    - Integrate UI
+    - Implement tests to verify the correctness of the result
+- April 4th
+    - Finish all the integrations
+    - Finalize the MVP
+- By the end of the week of April 1st:
+    - Conduct a user study to gather feedback on our checker
+    - Perform the user study
+    - Film the final video presentation.
+    - Focus on bug fixes and final refinements.
+
+
+### Progress against the timeline planned for your team, *including the specific goals you defined (originally as part of Check-in 2) for Check-in 5*.
+-  Integration and Testing: The core components for both static and dynamic analysis are implemented. Our current focus is on their testing and integration.
+-  User Interface Development: Consistent with our planned schedule, development of the user interface has commenced.
+-  User Study Timeline: Based on our progress and the outlined timeline, we are on track to conduct the final user study at the beginning of the week of April 1.
+
