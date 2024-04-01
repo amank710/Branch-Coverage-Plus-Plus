@@ -25,18 +25,18 @@ class SourceCodeZ3Playground {
                         output = false;
                     }
                 } else {
+                    output = true;
                     if (ff < 4) {
                         if (ff == 3) { // always true
-                            output = false;
+                            return output;
                         } else {
                             output = false; //ignore
                         }
                         output = false;
                     } else {
-                        output = false;
+                        output = true;
                     }
-                    return output;
-//                    output = true;
+                    output = true;
                 }
             } else {
                 output = false;

@@ -5,6 +5,7 @@ import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -146,12 +147,38 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 parentPath = new ArrayList<>();
             }
 //            System.out.println("Parent Path " + statementVisitor.getPath());
-            parentPath.addAll(statementVisitor.getPath()); // empty
+            if (statementVisitor.isReturn()) {
+                int lastLine = new ArrayList<Integer>(statementVisitor.getPath()).stream().sorted().toList().get(statementVisitor.getSize() - 1);
+                System.out.println("Last Line" + lastLine);
+                System.out.println("Parent Path" + parentPath);
+                for (int i = 0; i < parentPath.size(); i++) {
+                    if (parentPath.get(i) > lastLine) {
+                        parentPath.remove(i);
+                        i = i - 1;
+                    }
+                }
+                parentPath.add(lastLine);
+            } else {
+                parentPath.addAll(statementVisitor.getPath());
+            }
+//            parentPath.addAll(statementVisitor.getPath()); // empty
 
 //            System.out.println("Parent Path " + pathType + parentPath);
 
             ArrayList<Integer> currentPath = new ArrayList<>(pathList.get(pathListSize - 1));
+            System.out.println("Current Path " + pathType + currentPath);
             currentPath.addAll(statementVisitor.getPath());
+//            if(statementVisitor.isReturn()) {
+//               int lastLine = new ArrayList<Integer>(statementVisitor.getPath()).stream().sorted().toList().get(statementVisitor.getSize() - 1);
+//                System.out.println("Last Line" + lastLine);
+//                System.out.println("Current Path" + currentPath);
+//               for (int i = 0; i < currentPath.size(); i++) {
+//                   if (currentPath.get(i) > lastLine) {
+//                       currentPath.remove(i);
+//                       i = i - 1;
+//                   }
+//               }
+//            }
             System.out.println("Current Path " + pathType + currentPath);
 
             boolean pathsMatch = isPathMatch(parentPath, currentPath, true);
@@ -285,6 +312,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     }
 
 
+    @Override
+    public void visit(ReturnStmt n, Node arg) {
+        // Process the node to update the state with variable declarations
+
+    }
     @Override
     public void visit(VariableDeclarationExpr n, Node arg) {
         // Process the node to update the state with variable declarations

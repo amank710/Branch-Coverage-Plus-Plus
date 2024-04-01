@@ -17,13 +17,26 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     public StatementVisitor() {
         this.lines = new ArrayList<>();
     }
+
+    private boolean isReturn = false;
+
+    public boolean isReturn() {
+        return isReturn;
+    }
     @Override
     public void visit(BlockStmt n, Node arg) {
         n.getStatements().forEach(stmt -> {
 //            System.out.println(stmt.getBegin().get().line);
             if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
-                setPath(stmt.getBegin().get().line);
+                if (stmt.isReturnStmt()) {
+                    isReturn = true;
+                    setPath(stmt.getBegin().get().line);
+                }
+
+                if(!isReturn) {
+                    setPath(stmt.getBegin().get().line);
+                }
             }
         });
 
