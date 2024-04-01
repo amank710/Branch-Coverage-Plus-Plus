@@ -6,13 +6,14 @@ public class Main {
     public static void main(String[] args) {
         VariableMapBuilder variableMapBuilder = new VariableMapBuilder("src/main/java/source", "SourceCodeZ3Playground.java");
         Node root = variableMapBuilder.build();
-        System.out.println("BUild");
-        root.visualize();
-        System.out.println("Visualize");
 
-        int line = 7;
-        System.out.println(line);
-        System.out.println(root.getStateFromLine(line)); // Should print the state of the variables at line
+//        System.out.println("BUild");
+//        root.visualize();
+//        System.out.println("Visualize");
+//
+//        int line = 7;
+//        System.out.println(line);
+//        System.out.println(root.getStateFromLine(line)); // Should print the state of the variables at line
 
 
 ////        System.out.println(root.getDependenciesFromLine(line));
