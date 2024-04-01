@@ -13,13 +13,28 @@ class SourceCodeZ3Playground {
 //        output = a;
         int abc = 5;
 
-        if (ff > 4) { // Satisfiable
+        if (ff > 2) { // Satisfiable
             System.out.println("print");
             if (flag)  { // Satisfiable
                 output = true;
-                if (ff == 5) {
+                if (ff > 5) {
                     output = false;
+                    if (ff > 7) {
+                        output = false;
+                    } else {
+                        output = false;
+                    }
                 } else {
+                    if (ff < 4) {
+                        if (ff == 3) {
+                            output = false;
+                        } else {
+                            output = false;
+                        }
+                        output = false;
+                    } else {
+                        output = false;
+                    }
                     output = true;
                 }
             } else {
@@ -28,11 +43,11 @@ class SourceCodeZ3Playground {
             output = true;
         } else {
             output = false;
-            if (ff < 2) {
+            if (ff < 1) {
                 output = false;
             } else {
                 output = false;
-                if (ff > 3) {
+                if (ff == 2) {
                     output = false;
                 } else {
                     output = true;
