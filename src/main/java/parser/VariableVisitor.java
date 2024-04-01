@@ -139,10 +139,43 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     System.out.println("key" +key);
                     System.out.println("value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
-                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line)); // add to parent path instead of path list and add the parent path to the path list
+
+                    ArrayList<Integer> parentPath = new ArrayList<>(outerConditionalPath.peek());
+                    System.out.println("Initial Parent Path If" + parentPath);
+                    parentPath.addAll(statementVisitor.getPath());
+                    System.out.println("Complete Parent Path If" + parentPath);
+
+                    ArrayList<Integer> currentPath = new ArrayList<>(pathList.get(0));
+                    currentPath.addAll(statementVisitor.getPath());
+                    boolean pathesMatch = true;
+                    if (parentPath.size() == currentPath.size()) {
+                        for (int i=0; i<parentPath.size();i++) {
+                            if (parentPath.get(i) != currentPath.get(i)) {
+                                pathesMatch = false;
+                                break;
+                            }
+                        }
+                    } else {
+                        pathesMatch = false;
+                    }
+
+                    if (pathesMatch) {
+                        pathList.remove(0);
+                        pathList.add(0, currentPath);
+                        outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
+                    } else {
+                        pathList.add(parentPath);
+                        outerConditionalPath.push(new ArrayList<>(parentPath));
+                    }
+//                    if (statementVisitor.getSize() != 0) {
+//                        pathList.add(parentPath);
+//                        outerConditional.put(key, pathList);
+//                    }
+
+//                    statementVisitor.getPath().forEach(line -> pathList.get(0).add(line)); // add to parent path instead of path list and add the parent path to the path list
                     outerConditional.put(key, pathList);
 
-                    outerConditionalPath.push(new ArrayList<>(pathList.get(0)));
+
                     System.out.println("Here 2"+outerConditionalPath);
                 } else {
                     ArrayList<Integer> ifLines = new ArrayList<>();

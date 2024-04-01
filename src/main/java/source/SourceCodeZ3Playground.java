@@ -31,6 +31,7 @@ class SourceCodeZ3Playground {
             if (ff < 2) {
                 output = false;
             } else {
+                output = false;
                 if (ff > 3) {
                     output = false;
                 } else {
