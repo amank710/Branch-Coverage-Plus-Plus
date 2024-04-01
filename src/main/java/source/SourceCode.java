@@ -11,11 +11,13 @@ public class SourceCode {
         int w = 14;
         int y = number;
         int p = a;
-//        y = y + p;//:(
-//        z = y - a;//:(
-//        if(y > z) {
-//
-//        }
+        y = y + p;//:(
+        z = y - a;//:(
+        if(y > z) {
+            w = 100;
+        } else {
+            w = 200;
+        }
 //
 //        if (y > 0) {
 //            y = z;

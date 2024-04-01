@@ -354,7 +354,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     if(thenCondition && elseCondition) {
                         this.z3Solver.removeStaticVariable(variableName);
                     }
+
                 } else {
+                    // variableName is dynamically determined
                     this.z3Solver.removeStaticVariable(variableName);
                 }
 
