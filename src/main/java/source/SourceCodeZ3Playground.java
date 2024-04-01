@@ -35,7 +35,7 @@ class SourceCodeZ3Playground {
                     } else {
                         output = false;
                     }
-                    output = true;
+//                    output = true;
                 }
             } else {
                 output = false;

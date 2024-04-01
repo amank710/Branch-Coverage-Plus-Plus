@@ -218,6 +218,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
             outerConditionalPath.pop();
+
             Expression elseCondition = null;
             if(originalCondition == null) {
                 elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
@@ -255,17 +256,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     System.out.println("else key" +key);
                     System.out.println("else value" +pathList);
                     System.out.println("Here 1"+outerConditionalPath);
-//                    // if statement visitor get path is empty, dont add to pathList because of repeating paths
-//                    ArrayList<Integer> parentPath = outerConditionalPath.pop();
-//                    parentPath.addAll(statementVisitor.getPath());
-//
-//                    if (statementVisitor.getSize() != 0) {
-//                        pathList.add(parentPath);
-//                        outerConditional.put(key, pathList);
-//                    }
-//                    outerConditionalPath.push(new ArrayList<>(parentPath));
+                    ArrayList<Integer> parentPath;
+                    if (!outerConditionalPath.isEmpty()) {
+                        parentPath = new ArrayList<>(outerConditionalPath.pop());
+                    } else {
+                        parentPath = new ArrayList<>();
+                    }
 
-                    ArrayList<Integer> parentPath = new ArrayList<>(outerConditionalPath.pop());
                     parentPath.addAll(statementVisitor.getPath());
                     System.out.println("Parent Path Else" + parentPath);
 
