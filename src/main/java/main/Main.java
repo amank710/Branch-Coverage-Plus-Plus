@@ -6,7 +6,6 @@ public class Main {
     public static void main(String[] args) {
         VariableMapBuilder variableMapBuilder = new VariableMapBuilder("src/main/java/source", "SourceCodeZ3Playground.java");
         Node root = variableMapBuilder.build();
-
 //        System.out.println("BUild");
 //        root.visualize();
 //        System.out.println("Visualize");

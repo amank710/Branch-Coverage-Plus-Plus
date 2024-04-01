@@ -28,9 +28,9 @@ public class VariableMapBuilder {
             cu.accept(variableVisitor, null);
             System.out.println("actual");
             System.out.println(paths);
-            System.out.println("expected");
-            System.out.println("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]");
-            System.out.println(paths.toString().equals("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]"));
+//            System.out.println("expected");
+//            System.out.println("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]");
+//            System.out.println(paths.toString().equals("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]"));
 
             return this.variableMapRoot;
         } catch (Exception e) {
