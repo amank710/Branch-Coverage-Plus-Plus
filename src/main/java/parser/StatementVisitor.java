@@ -20,6 +20,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     @Override
     public void visit(BlockStmt n, Node arg) {
         n.getStatements().forEach(stmt -> {
+//            System.out.println(stmt.getBegin().get().line);
             if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
                 setPath(stmt.getBegin().get().line);

@@ -16,9 +16,9 @@ class SourceCodeZ3Playground {
         if (ff > 2) { // Satisfiable
             System.out.println("print");
             if (flag)  { // Satisfiable
-                output = true;
+//                output = true;
                 if (ff > 5) {
-                    output = false;
+//                    output = false;
                     if (ff > 7) {
                         output = false;
                     } else {
@@ -26,10 +26,10 @@ class SourceCodeZ3Playground {
                     }
                 } else {
                     if (ff < 4) {
-                        if (ff == 3) {
+                        if (ff == 3) { // always true
                             output = false;
                         } else {
-                            output = false;
+                            output = false; //ignore
                         }
                         output = false;
                     } else {
