@@ -18,7 +18,7 @@ class SourceCodeZ3Playground {
             if (flag)  { // Satisfiable
 //                output = true;
                 if (ff > 5) {
-                    output = false;
+//                    output = false;
                     if (ff > 7) {
                         output = false;
                     } else {

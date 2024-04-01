@@ -27,9 +27,6 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
             }
         });
 
-        System.out.println("BlockStmt");
-        System.out.println(getPath());
-
 //        System.out.println(n.getStatements());
     }
 

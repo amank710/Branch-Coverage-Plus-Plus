@@ -39,29 +39,4 @@ public class VariableMapBuilder {
         return null;
     }
 
-
-
-    public void printFlattenPath (Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths) {
-        Set<Integer> flattenPath = new HashSet<>();
-        boolean isIf = true;
-        int indent = 0;
-        for (Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> path : paths) {
-            for (Map.Entry<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> entry : path.entrySet()) {
-                ArrayList<ArrayList<Integer>> value = entry.getValue();
-                System.out.println(entry.getKey());
-                for (ArrayList<Integer> line : value) {
-                    if(isIf) {
-                        System.out.print(" ".repeat(indent));
-                        System.out.println("If: " + line);
-                        isIf = false;
-                    } else {
-                        System.out.print(" ".repeat(indent));
-                        System.out.println("Else: " + line);
-                        isIf = true;
-                    }
-                    indent += 4;
-                }
-            }
-        }
-    }
 }
