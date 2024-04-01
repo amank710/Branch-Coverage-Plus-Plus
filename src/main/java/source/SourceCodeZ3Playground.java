@@ -53,21 +53,20 @@ class SourceCodeZ3Playground {
                     output = true;
                 }
             }
-
         }
         //[19,17, 23][21,17, 23]
 
-
-        if (flag) {
-            output = false;
-            if (ff == 5) {
-                output = false;
-            } else {
-                output = true;
-            }
-        } else {
-            output = true;
-        }
+//
+//        if (flag) {
+//            output = false;
+//            if (ff == 5) {
+//                output = false;
+//            } else {
+//                output = true;
+//            }
+//        } else {
+//            output = true;
+//        }
 
 //        if (abc != abc) { // Unsatisfiable
 //            output = a;
