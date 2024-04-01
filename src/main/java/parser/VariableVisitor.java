@@ -353,7 +353,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         this.previousCondition = originalCondition;
         this.previousNode = afterIfNode;
-        System.out.println("Path " + path.getPath());
+        System.out.println("Path " + paths);
     }
 
     @Override
