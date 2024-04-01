@@ -11,6 +11,16 @@ public class Tuple<A, B>
         this.b = b;
     }
 
+    public A first()
+    {
+        return a;
+    }
+
+    public B second()
+    {
+        return b;
+    }
+
     @Override
     public String toString()
     {
