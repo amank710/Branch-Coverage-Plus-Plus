@@ -327,7 +327,15 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     }
 
     private void processAssignStaticValue(String variableName, Expression value) {
-        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr()) {
+        System.out.println(value);
+//        this.z3Solver.setCondition(previousCondition);
+//        boolean thenCondition = this.z3Solver.solve();
+//        boolean else
+//        if( this.z3Solver.solve()) {
+//            this.z3Solver.removeStaticVariable(variableName);
+//            return;
+//        }
+        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr() || value.isBinaryExpr()) {
             this.z3Solver.addStaticVariableValues(variableName, value);
             System.out.println(this.z3Solver.getStaticVariableValues());
         } else {
@@ -335,7 +343,21 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             if(this.z3Solver.isVariableValueKnown(value.toString())){
                 this.z3Solver.addStaticVariableValues(variableName, this.z3Solver.getVariableValue(value.toString()));
             } else {
-                System.out.println("Variable value is not known");
+                if (previousCondition != null) {
+                    this.z3Solver.setCondition(previousCondition);
+                    boolean thenCondition = this.z3Solver.solve();
+                    System.out.println(new UnaryExpr(previousCondition, UnaryExpr.Operator.LOGICAL_COMPLEMENT));
+                    this.z3Solver.setCondition(new UnaryExpr(previousCondition, UnaryExpr.Operator.LOGICAL_COMPLEMENT));
+                    boolean elseCondition = this.z3Solver.solve();
+
+                    // variableName is dynamically determined
+                    if(thenCondition && elseCondition) {
+                        this.z3Solver.removeStaticVariable(variableName);
+                    }
+                } else {
+                    this.z3Solver.removeStaticVariable(variableName);
+                }
+
             }
         }
     }

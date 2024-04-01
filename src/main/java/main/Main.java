@@ -4,7 +4,7 @@ import graph.Node;
 
 public class Main {
     public static void main(String[] args) {
-        VariableMapBuilder variableMapBuilder = new VariableMapBuilder("src/main/java/source", "SourceCodeZ3Playground.java");
+        VariableMapBuilder variableMapBuilder = new VariableMapBuilder("src/main/java/source", "SourceCode.java");
         Node root = variableMapBuilder.build();
 //        System.out.println("BUild");
 //        root.visualize();
