@@ -8,6 +8,9 @@ public class Main {
         Node root = variableMapBuilder.build();
 //        System.out.println("BUild");
 //        root.visualize();
+        System.out.println("Build");
+        System.out.println(variableMapBuilder.getPath());
+
 //        System.out.println("Visualize");
 //
 //        int line = 7;

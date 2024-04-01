@@ -15,6 +15,8 @@ public class VariableMapBuilder {
     private Node variableMapRoot;
     private String fileName;
 
+    private Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths;
+
     public VariableMapBuilder(String sourcePath, String fileName) {
         this.sourceRoot = new SourceRoot(Paths.get(sourcePath));
         this.variableMapRoot = new StateNode();
@@ -27,7 +29,7 @@ public class VariableMapBuilder {
             VariableVisitor variableVisitor = new VariableVisitor(this.variableMapRoot, paths);
             cu.accept(variableVisitor, null);
             System.out.println("actual");
-            System.out.println(paths);
+            setPath(paths);
 //            System.out.println("expected");
 //            System.out.println("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]");
 //            System.out.println(paths.toString().equals("[{[16, 44]=[[17, 43, 19, 21, 23], [17, 43, 19, 21, 25], [17, 43, 19, 38, 34, 30], [17, 43, 19, 38, 36], [17, 43, 41]]}, {[44, 56]=[[45, 47], [45, 49, 51], [45, 49, 53]]}]"));
@@ -37,6 +39,14 @@ public class VariableMapBuilder {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void setPath(Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths) {
+        this.paths = paths;
+    }
+
+    public Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> getPath() {
+        return this.paths;
     }
 
 }
