@@ -23,10 +23,12 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
     // input to the dynamic analysis
     Map<String, FunctionContext> instrumentedMethodContext;
+    Map<String, List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> satisfiablePaths;
 
     public InstrumentedTestExtension()
     {
         instrumentedMethodPaths = new HashMap<>();
+        satisfiablePaths = new HashMap<>();
     }
 
     @Override
@@ -83,7 +85,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             Path path = new Path();
             entry.getValue().forEach(t -> path.addLine(t.first()));
             paths.add(path);
-            instrumentedMethodPaths.put(methodName, paths);
+            setExploredPaths(methodName, paths);
         }
     }
 
@@ -93,6 +95,59 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         System.out.println("[InstrumentedTestExtension]: Test suite completed");
         System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
         printCoverage();
+    }
+
+    public Map<String, Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> getUncoveredPathSegments()
+    {
+        Map<String, Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> uncoveredPathSegments = new HashMap<>();
+
+        for (Map.Entry<String, List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> entry : satisfiablePaths.entrySet())
+        {
+            for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : entry.getValue())
+            {
+                for (ArrayList<Integer> segment : path_segment.second())
+                {
+                    if (!isCovered(entry.getKey(), segment))
+                    {
+                        uncoveredPathSegments.putIfAbsent(entry.getKey(), new HashSet<>());
+                        uncoveredPathSegments.get(entry.getKey()).add(path_segment);
+                    
+                    }
+                }
+            }
+            //List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> satisfiablePaths = entry.getValue();
+            //Set<Path> exploredPaths = instrumentedMethodPaths.get(methodName);
+            //Set<Path> uncoveredPaths = getUncoveredPaths(satisfiablePaths, exploredPaths);
+            //uncoveredPathSegments.put(methodName, uncoveredPaths.stream().map(Path::getSegments).collect(Collectors.toSet()));
+        }
+
+        return uncoveredPaths;
+    }
+
+    void setExploredPaths(String methodName, Set<Path> paths)
+    {
+        instrumentedMethodPaths.put(methodName, paths);
+    }
+
+    void setSatisfiablePaths(String methodName, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> viablePaths)
+    {
+        List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> paths = new ArrayList<>();
+
+        for (Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> path : viablePaths)
+        {
+            for (Map.Entry<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> entry : path.entrySet())
+            {
+                Tuple<Integer, Integer> range = new Tuple<>(entry.getKey().get(0), entry.getKey().get(1));
+                paths.add(new Tuple<>(range, entry.getValue()));
+            }
+        }
+
+        satisfiablePaths.put(methodName, paths);
+    }
+
+    List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getExplorablePaths(String methodName)
+    {
+        return satisfiablePaths.get(methodName);
     }
 
     private void printCoverage()

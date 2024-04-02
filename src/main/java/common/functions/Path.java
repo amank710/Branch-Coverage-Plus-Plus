@@ -1,7 +1,6 @@
 package common.functions;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * A Path corresponds to a code path in a FunctionContext.
@@ -10,14 +9,19 @@ import java.util.List;
  */
 public class Path
 {
-    private List<Integer> path;
+    private Set<Integer> path;
 
     public Path ()
     {
-        path = new java.util.ArrayList<>();
+        path = new TreeSet<Integer>();
     }
 
-    public List<Integer> getPath()
+    public Path(Set<Integer> path)
+    {
+        this.path = path;
+    }
+
+    public Collection<Integer> getPath()
     {
         return path;
     }
@@ -25,5 +29,11 @@ public class Path
     public void addLine(int line)
     {
         path.add(line);
+    }
+
+    @Override
+    public String toString()
+    {
+        return path.toString();
     }
 }

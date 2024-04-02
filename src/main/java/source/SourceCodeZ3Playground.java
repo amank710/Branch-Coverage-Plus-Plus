@@ -1,6 +1,9 @@
 package source;
 
-class SourceCodeZ3Playground {
+import runtime.Instrumentable;
+
+public class SourceCodeZ3Playground {
+    @Instrumentable
     public static Boolean booleanFlags(boolean flag, int ff) {
 
         // No variable tracking
@@ -35,8 +38,8 @@ class SourceCodeZ3Playground {
                     } else {
                         output = false;
                     }
-                    return output;
-//                    output = true;
+               //     return output;
+                    output = true;
                 }
             } else {
                 output = false;
@@ -57,17 +60,17 @@ class SourceCodeZ3Playground {
         }
         //[19,17, 23][21,17, 23]
 
-//
-//        if (flag) {
-//            output = false;
-//            if (ff == 5) {
-//                output = false;
-//            } else {
-//                output = true;
-//            }
-//        } else {
-//            output = true;
-//        }
+
+        if (flag) {
+            output = false;
+            if (ff == 5) {
+                output = false;
+            } else {
+                output = true;
+            }
+        } else {
+            output = true;
+        }
 
 //        if (abc != abc) { // Unsatisfiable
 //            output = a;
@@ -153,7 +156,8 @@ class SourceCodeZ3Playground {
 ////        }
 ////
 
-        return output;
+        // return output
+        return true;
     }
 
 }
