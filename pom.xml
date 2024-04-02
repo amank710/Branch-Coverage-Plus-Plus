@@ -21,6 +21,11 @@
             <artifactId>z3-turnkey</artifactId>
             <version>4.12.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.group4.project2</groupId>
+            <artifactId>path_coverage_plus_plus</artifactId>
+            <version>1</version>
+        </dependency>
     </dependencies>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

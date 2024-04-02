@@ -1,4 +1,4 @@
-import {Route, Routes} from "react-router-dom";
+import {Link, redirect, Route, Routes} from "react-router-dom";
 import HomePage from "../Pages/home";
 import {AppShell, Burger, Group, NavLink, Title} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
@@ -25,24 +25,15 @@ const PathCoverageAppShell = () => {
                 </Group>
             </AppShell.Header>
             <AppShell.Navbar p="md">
-                <NavLink
-                    href="/"
-                    label="File Input"
-                />
-                <NavLink
-                    href="/chart"
-                    label="Chart"
-                />
-                <NavLink
-                    href="/highlight"
-                    label="Line Highlighting"
-                />
+                <Link to={"/"}>Home</Link>
+                <Link to={"/chart"}>Chart</Link>
+                <Link to={"/highlight"}>Line Highlighting</Link>
             </AppShell.Navbar>
             <AppShell.Main>
                 <Routes>
-                    <Route path={"/"} element={<HomePage />} />
-                    <Route path={"/chart"} element={<ChartPage/>} />
-                    <Route path={"/highlight"} element={<HighlightPage/>} />
+                    <Route path={"/"} exact element={<HomePage />} />
+                    <Route path={"/chart"} exact element={<ChartPage/>} />
+                    <Route path={"/highlight"} exact element={<HighlightPage/>} />
                 </Routes>
             </AppShell.Main>
         </AppShell>

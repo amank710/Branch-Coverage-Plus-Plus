@@ -6,14 +6,15 @@ import {Bar} from "react-chartjs-2";
 const ChartPage = () => {
     const [input, setData] = useState(null);
 
-    useEffect(() => {
-        fetch("http://localhost:8080/api/paths")
-            .then(response => response.json())
-            .then(json => setData(json))
-            .catch(error => console.error(error));
-    }, []);
+    // useEffect(() => {
+    //     fetch("http://localhost:8080/api/paths")
+    //         .then(response => response.json())
+    //         .then(json => setData(json))
+    //         .catch(error => console.error(error));
+    // }, []);
 
     const getChartInput = () => {
+        console.log("BUTTON HIT");
         console.log(input);
     }
 

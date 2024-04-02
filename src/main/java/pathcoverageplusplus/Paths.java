@@ -1,4 +1,4 @@
-package cpsc410.group4.pathcoverageplusplus;
+package pathcoverageplusplus;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package cpsc410.group4.pathcoverageplusplus;
+package pathcoverageplusplus;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
