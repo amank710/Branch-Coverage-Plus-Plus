@@ -14,7 +14,7 @@ class SourceCode {
             y = x;
         }
 
-        y = x + y;
+        y = (x+number) + w + w + w;
 
         if (y <= 0) {
             x = y;

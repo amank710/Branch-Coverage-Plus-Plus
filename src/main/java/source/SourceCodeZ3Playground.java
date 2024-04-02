@@ -14,20 +14,24 @@ class SourceCodeZ3Playground {
         int abc = 5;
 
         if (ff > 2) { // Satisfiable
-            System.out.println("print");
+//            System.out.println("print");
             if (flag)  { // Satisfiable
-//                output = true;
+                output = true;
                 if (ff > 5) {
-//                    output = false;
+                    output = false;
                     if (ff > 7) {
                         output = false;
+
                     } else {
                         output = false;
+                        return output;
                     }
+                  output= false;
                 } else {
                     output = true;
                     if (ff < 4) {
                         if (ff == 3) { // always true
+                            output = false;
                             return output;
                         } else {
                             output = false; //ignore

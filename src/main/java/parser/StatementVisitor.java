@@ -20,8 +20,14 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
 
     private boolean isReturn = false;
 
+    private int returnLine = 0;
+
     public boolean isReturn() {
         return isReturn;
+    }
+
+    public int getReturnLine() {
+        return returnLine;
     }
     @Override
     public void visit(BlockStmt n, Node arg) {
@@ -32,9 +38,8 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
                 if (stmt.isReturnStmt()) {
                     isReturn = true;
                     setPath(stmt.getBegin().get().line);
-                }
-
-                if(!isReturn) {
+                    returnLine = stmt.getBegin().get().line;
+                }else {
                     setPath(stmt.getBegin().get().line);
                 }
             }
