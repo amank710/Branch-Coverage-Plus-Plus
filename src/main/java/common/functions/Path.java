@@ -7,7 +7,7 @@ import java.util.*;
  *
  * It corresponds to a set of line numbers.
  */
-public class Path
+public class Path implements Iterable<Integer>
 {
     private Set<Integer> path;
 
@@ -35,5 +35,11 @@ public class Path
     public String toString()
     {
         return path.toString();
+    }
+
+    @Override
+    public Iterator<Integer> iterator()
+    {
+        return path.iterator();
     }
 }

@@ -97,28 +97,41 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         printCoverage();
     }
 
-    public Map<String, Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> getUncoveredPathSegments()
+    public Map<Integer, Integer> getLineHits(String methodName)
     {
-        Map<String, Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> uncoveredPathSegments = new HashMap<>();
+        Set<Path> paths = instrumentedMethodPaths.get(methodName);
+        Map<Integer, Integer> lineHits = new HashMap<>();
 
-        for (Map.Entry<String, List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> entry : satisfiablePaths.entrySet())
+        for (Path path : paths)
         {
-            for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : entry.getValue())
+            for (Integer line : path)
             {
-                for (ArrayList<Integer> segment : path_segment.second())
+                lineHits.put(line, lineHits.getOrDefault(line, 0) + 1);
+            }
+        }
+
+        return lineHits;
+    }
+
+    public Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getUncoveredPathSegments(String methodName)
+    {
+        HashSet<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPaths = new HashSet<>();
+
+        for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : satisfiablePaths.get(methodName))
+        {
+            ArrayList<ArrayList<Integer>> uncoveredPathSegments = new ArrayList<>();
+            for (ArrayList<Integer> segment : path_segment.second())
+            {
+                if (!isCovered(methodName, segment))
                 {
-                    if (!isCovered(entry.getKey(), segment))
-                    {
-                        uncoveredPathSegments.putIfAbsent(entry.getKey(), new HashSet<>());
-                        uncoveredPathSegments.get(entry.getKey()).add(path_segment);
-                    
-                    }
+                    uncoveredPathSegments.add(segment);
                 }
             }
-            //List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> satisfiablePaths = entry.getValue();
-            //Set<Path> exploredPaths = instrumentedMethodPaths.get(methodName);
-            //Set<Path> uncoveredPaths = getUncoveredPaths(satisfiablePaths, exploredPaths);
-            //uncoveredPathSegments.put(methodName, uncoveredPaths.stream().map(Path::getSegments).collect(Collectors.toSet()));
+
+            if (uncoveredPathSegments.size() > 0)
+            {
+                uncoveredPaths.add(new Tuple<>(path_segment.first(), uncoveredPathSegments));
+            }
         }
 
         return uncoveredPaths;
@@ -148,6 +161,33 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
     List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getExplorablePaths(String methodName)
     {
         return satisfiablePaths.get(methodName);
+    }
+
+    private Boolean isCovered(String methodName, ArrayList<Integer> segment)
+    {
+        Collections.sort(segment);
+
+        for (Path executedPath : instrumentedMethodPaths.get(methodName))
+        {
+            LinkedList<Integer> segmentQueue = new LinkedList<>(segment);
+
+            for (Integer lineNumber : executedPath)
+            {
+                Integer segmentLineNumber = segmentQueue.peek();
+
+                if (lineNumber.equals(segmentLineNumber))
+                {
+                    segmentQueue.pop();
+                }
+
+                if (segmentQueue.isEmpty())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void printCoverage()

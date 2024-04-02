@@ -48,7 +48,7 @@ public class InstrumentedTestExtensionTest
     }
 
     @Test
-    public void testCoveredPathsAllCovered()
+    public void testUnCoveredPaths()
     {
         InstrumentedTestExtension extension = new InstrumentedTestExtension();
         extension.setSatisfiablePaths("testFunc", createMockPaths());
@@ -58,6 +58,9 @@ public class InstrumentedTestExtensionTest
         System.out.println(paths);
 
         extension.setExploredPaths("testFunc", createMockTestPaths());
+        Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPaths = extension.getUncoveredPathSegments("testFunc");
+        System.out.println(uncoveredPaths);
+        assertEquals(2, uncoveredPaths.size());
     }
 
     private Set<Path> createMockTestPaths()
