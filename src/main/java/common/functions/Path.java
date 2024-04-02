@@ -1,5 +1,6 @@
 package common.functions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,5 +26,4 @@ public class Path
     {
         path.add(line);
     }
-
 }

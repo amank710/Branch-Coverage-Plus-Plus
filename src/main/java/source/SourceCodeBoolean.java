@@ -1,6 +1,9 @@
 package source;
 
-class SourceCodeBoolean {
+import runtime.Instrumentable;
+
+public class SourceCodeBoolean {
+    @Instrumentable
     public static Boolean booleanFlags(boolean flag) {
 
         // No variable tracking
