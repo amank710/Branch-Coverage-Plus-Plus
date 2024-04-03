@@ -38,7 +38,9 @@ const HomePage = () => {
                 placeholder={"Choose a file"}
                 onChange={file => handleFileUpload(file)}
             />
-            <p>{codeFile}</p>
+            <p>
+                {codeFile.length > 0 ? "File uploaded and saved." : ""}
+            </p>
         </div>
     );
 };

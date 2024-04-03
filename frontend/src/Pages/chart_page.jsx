@@ -4,26 +4,28 @@ import {Chart} from "chart.js/auto";
 import {Bar} from "react-chartjs-2";
 
 const ChartPage = () => {
-    const [input, setData] = useState(null);
+    const [input, setData] = useState([]);
 
-    // useEffect(() => {
-    //     fetch("http://localhost:8080/api/paths")
-    //         .then(response => response.json())
-    //         .then(json => setData(json))
-    //         .catch(error => console.error(error));
-    // }, []);
-
-    const getChartInput = () => {
-        console.log("BUTTON HIT");
-        console.log(input);
+    const getData = async () => {
+        const response = await fetch("http://localhost:8080/api/paths", {
+            method: "GET",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        })
+            .then(response => response.json())
+            .then(data => setData(data));
     }
 
-    // Sample input provided by backend (guessing from dynamic analysis)
-    const sample_input = [1, 4, 5, 6];
+    const getChartInput = async () => {
+        console.log("BUTTON HIT");
+        await getData();
+    }
 
     // labels are just path + index
     const labels = [];
-    for (let i = 0; i < sample_input.length; i++) {
+    for (let i = 0; i < input.length; i++) {
         labels.push("Path " + (i + 1).toString());
     }
 
@@ -34,7 +36,7 @@ const ChartPage = () => {
             {
                 label: 'Paths',
                 // data is the sample input
-                data: sample_input,
+                data: input,
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1,
@@ -75,7 +77,7 @@ const ChartPage = () => {
     return (
         <div>
             <Title order={2} padding={"md"}>Path Coverage - Chart</Title>
-            <Button size={"compact-md"} onChange={getChartInput}>Get Data</Button>
+            <Button size={"compact-md"} onClick={getChartInput}>Get Data</Button>
             <Bar
                 data={data}
                 options={options}
