@@ -1,0 +1,23 @@
+.mantine-AppShell-header {
+    background-color: #FCFBFA;
+}
+
+.mantine-AppShell-navbar {
+    background-color: #FCFBFA;
+}
+
+.mantine-Title-root {
+    font-weight: lighter;
+}
+
+
+a {
+    font-size: 16px;
+    color: black;
+    text-decoration: none;
+    padding-bottom: 0.5rem;
+}
+
+a:hover {
+    color: grey;
+}
