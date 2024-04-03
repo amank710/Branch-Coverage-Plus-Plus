@@ -1,0 +1,31 @@
+.custom-label {
+    font-size: 24px;
+}
+
+.main-container {
+    padding-left: 1rem;
+}
+
+.text-container {
+    padding-top: 1rem;
+}
+
+.title-container {
+    padding-bottom: 1rem;
+}
+
+.button-container {
+    padding-top: 1rem;
+}
+
+.mantine-Button-root {
+    font-size: 16px;
+    font-weight: normal;
+    color: dimgrey;
+    background-color: rgba(192, 75, 75, 0.2);
+    border-color: rgba(192, 75, 75, 1);
+}
+
+.mantine-Button-root:hover {
+    background-color: rgba(192, 75, 75, 1);
+}
