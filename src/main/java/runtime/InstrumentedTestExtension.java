@@ -2,12 +2,15 @@ package runtime;
 
 import common.functions.FunctionContext;
 import common.functions.Path;
+import common.PathCoverage;
 import common.util.Tuple;
 import graph.Node;
 import parser.VariableMapBuilder;
 
 import com.sun.jdi.AbsentInformationException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,7 +95,15 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
     {
         System.out.println("[InstrumentedTestExtension]: Test suite completed");
         System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
-        printCoverage();
+
+        PathCoverage pathCoverage = new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(pathCoverage);
+        oos.flush();
+        oos.close();
+        
+        context.publishReportEntry("coverage", baos.toString("ISO-8859-1"));
     }
 
     private void printCoverage()
