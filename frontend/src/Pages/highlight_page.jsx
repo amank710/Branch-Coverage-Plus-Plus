@@ -3,12 +3,23 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {useSelector} from "react-redux";
 import selectors from "../State/selectors";
-import {Title} from "@mantine/core";
+import {Title, Text} from "@mantine/core";
 
 const HighlightPage = () => {
     const codeFile = useSelector(selectors.selectCodeFile)["codeFile"];
+    const uncovered = useSelector(selectors.selectPathCoverage)["pathCoverage"]["uncoveredPaths"];
+    const notCoveredLines = [];
 
-    const notCoveredLines = [2, 3];
+    // loop through all methods
+    for (const method in uncovered) {
+        // loop through all lines in each method's array
+        for (let i = 0; i < uncovered[method].length; i++) {
+            // loop through lines per path in a method's array
+            for (let j = 0; j < uncovered[method][i].length; j++) {
+                notCoveredLines.push(uncovered[method][i][j]);
+            }
+        }
+    }
 
     const lineProps = (lineNumber) => {
         let style = {display: 'block'};
@@ -33,6 +44,12 @@ const HighlightPage = () => {
             >
                 {codeFile}
             </SyntaxHighlighter>
+            <div className="text-container">
+                {notCoveredLines.length > 0 ?  <Text
+                    c="dimmed"
+                    fz="lg"
+                >Highlighted lines were not reached/covered.</Text> : <></>}
+            </div>
         </div>
     );
 };

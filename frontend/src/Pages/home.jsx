@@ -1,10 +1,11 @@
 import React from "react";
-import {FileInput, Text} from "@mantine/core";
+import {Button, FileInput, Text} from "@mantine/core";
 import '@mantine/core/styles.css';
 import {useDispatch, useSelector} from "react-redux";
 import selectors from "../State/selectors";
 import {setCodeFile} from "../State/Reducers/codeFileSlice";
 import "../Styling/styles.css";
+import FetchButton from "../Components/FetchButton";
 
 const HomePage = () => {
     const dispatch = useDispatch();
@@ -46,6 +47,7 @@ const HomePage = () => {
                     fz="md"
                 > {codeFile.length > 0 ? "File uploaded and saved." : ""} </Text>
             </div>
+            <FetchButton />
         </div>
     );
 };
