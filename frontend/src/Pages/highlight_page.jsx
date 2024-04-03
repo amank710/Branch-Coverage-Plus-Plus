@@ -20,8 +20,10 @@ const HighlightPage = () => {
     }
 
     return (
-        <div>
-            <Title order={2} padding={"md"}>Path Coverage - Line Highlighting</Title>
+        <div className="main-container">
+            <div className="title-container">
+                <Title order={2} padding={"md"}>Path Coverage - Line Highlighting</Title>
+            </div>
             <SyntaxHighlighter
                 language="javascript"
                 style={solarizedlight}

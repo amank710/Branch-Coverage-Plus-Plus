@@ -1,9 +1,10 @@
-import {Link, redirect, Route, Routes} from "react-router-dom";
+import {Link, Route, Routes} from "react-router-dom";
 import HomePage from "../Pages/home";
-import {AppShell, Burger, Group, NavLink, Title} from "@mantine/core";
+import {AppShell, Burger, Group, Title} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import ChartPage from "../Pages/chart_page";
 import HighlightPage from "../Pages/highlight_page";
+import "../Styling/appShell.css";
 
 const PathCoverageAppShell = () => {
     const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);

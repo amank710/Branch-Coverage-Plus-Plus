@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {Button, Title} from "@mantine/core";
 import {Chart} from "chart.js/auto";
 import {Bar} from "react-chartjs-2";
+import "../Styling/styles.css";
 
 const ChartPage = () => {
     const [input, setData] = useState([]);
@@ -56,7 +57,7 @@ const ChartPage = () => {
                 text: 'Path Coverage Runs',
                 font: {
                     size: 24,
-                    weight: 'bold'
+                    weight: 'normal'
                 }
             },
         },
@@ -67,7 +68,8 @@ const ChartPage = () => {
                     display: true,
                     text: 'Number of Runs',
                     font: {
-                        size: 16
+                        size: 18,
+                        weight: 'light'
                     }
                 },
             }
@@ -75,13 +77,21 @@ const ChartPage = () => {
     }
 
     return (
-        <div>
-            <Title order={2} padding={"md"}>Path Coverage - Chart</Title>
-            <Button size={"compact-md"} onClick={getChartInput}>Get Data</Button>
+        <div className="main-container">
+            <div className="title-container">
+                <Title order={2} padding={"md"}>Path Coverage - Chart</Title>
+            </div>
             <Bar
                 data={data}
                 options={options}
             />
+            <div className="button-container">
+                <Button
+                    size={"compact-md"}
+                    onClick={getChartInput}
+                    radius={"md"}
+                >Get Data</Button>
+            </div>
         </div>
     );
 };
