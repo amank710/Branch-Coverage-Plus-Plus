@@ -39,6 +39,8 @@ public class Z3Solver {
             Solver solver = ctx.mkSolver();
             solver.add(conditionExpr);
 
+
+            this.stack.push(solver.check() == Status.SATISFIABLE);
             if (solver.check() == Status.SATISFIABLE) {
                 return true;
             }
@@ -50,8 +52,8 @@ public class Z3Solver {
 
     public BoolExpr toZ3Expr(Context ctx) throws Exception {
         boolean currentCondition = this.peekCondition();
-        System.out.println("previous condition result: " + currentCondition);
-        System.out.println("current condition: " + this.currentBlockCondition);
+//        System.out.println("previous condition result: " + currentCondition);
+//        System.out.println("current condition: " + this.condition);
         return parseExpression(this.condition, ctx);
     }
 
@@ -219,12 +221,11 @@ public class Z3Solver {
 
     public void setCondition(Expression condition) {
         this.condition = condition;
+//        System.out.println("condition set: " + this.condition);
     }
 
     public void pushCondition(Expression condition) {
         setCondition(condition);
-        boolean value = this.solve();
-        this.stack.push(value);
     }
 
     public boolean popCondition() {

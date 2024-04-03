@@ -63,6 +63,8 @@ class SourceCodeZ3Playground {
 //            // uncomment to get empty stack exception
 //            if (ff == 5) {
 //                output = false;
+//            } else {
+//                output = true;
 //            }
 //            output = false;
 //        } else {
