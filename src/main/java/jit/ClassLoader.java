@@ -4,6 +4,10 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler;
 
@@ -18,20 +22,29 @@ public class ClassLoader
         this.files = files;
     }
 
-    public void loadClasses()
+    public Map<String, Class<?>> loadClasses()
     {
+        ArrayList<String> args = new ArrayList<String>();
+        args.add("-g");
+        for (String file : files)
+        {
+            args.add(root + "/" + file);
+        }
+
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        compiler.run(null, null, null, args.toArray(new String[0]));
+
+        Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
         for (String localSource : files)
         {
-            File file = new File(root + "/" + localSource);
-            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            compiler.run(null, null, null, file.getPath());
-
             try
             {
-                System.out.println("[ClassLoader] URL: " + root.toURI().toURL());
-                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                System.out.println("[ClassLoader] Loading class " + file.getName().replace(".java", ""));
-                System.out.println("[ClassLoader] Loaded: " + classLoader.loadClass("demo.SimpleDemo" ));
+                File fileRoot = new File(root);
+                System.out.println("[ClassLoader] URL: " + fileRoot);
+                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { fileRoot.toURI().toURL() });
+                String className = localSource.replace(".java", "");
+                System.out.println("[ClassLoader] Loading class " + className);
+                classes.put(className, classLoader.loadClass(className));
             }
             catch (ClassNotFoundException|MalformedURLException e)
             {
@@ -39,5 +52,7 @@ public class ClassLoader
                 e.printStackTrace();
             }
         }
+
+        return classes;
     }
 }

@@ -12,6 +12,7 @@ import com.sun.jdi.AbsentInformationException;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,11 +44,13 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
         Map<String, Set<String>> instrumentedMethodMapping = new HashMap<>();
         for (Class<?> instClass : instClasses) {
-            String path_home = Optional.ofNullable(System.getProperty("PATH_COVERAGE_SOURCE_HOME")).orElseThrow(() -> new IllegalArgumentException("Please set the PATH_COVERAGE_SOURCE_HOME environment variable"));
-            String local_source_path = instClass.getPackage().getName().replaceAll("\\.", "/");
-            System.out.println("[InstrumentedTestExtension]: Trying to find source code at " + path_home + "/" + local_source_path + "/" + instClass.getSimpleName() + ".java");
+            //String path_home = Optional.ofNullable(System.getProperty("PATH_COVERAGE_SOURCE_HOME")).orElseThrow(() -> new IllegalArgumentException("Please set the PATH_COVERAGE_SOURCE_HOME environment variable"));
+            //String local_source_path = instClass.getPackage().getName().replaceAll("\\.", "/");
+            //System.out.println("[InstrumentedTestExtension]: Trying to find source code at " + path_home + "/" + local_source_path + "/" + instClass.getSimpleName() + ".java");
+            URL location = instClass.getProtectionDomain().getCodeSource().getLocation();
+            System.out.println("[InstrumentedTestExtension]: Found source code at " + location);
 
-            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path_home + "/" + local_source_path, instClass.getSimpleName() + ".java");
+            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(location.getPath(), instClass.getSimpleName() + ".java");
             Node root = variableMapBuilder.build();
 
             Set<Method> instMethods = getInstrumentable(instClass);

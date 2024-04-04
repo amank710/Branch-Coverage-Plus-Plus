@@ -20,18 +20,24 @@ public class TestExecutor
     private String testClass;
     private TestExecutionSummary summary;
     private Optional<PathCoverage> pathCoverage;
+    private Class clazz;
 
-    TestExecutor(String testClass)
+    public TestExecutor(String testClass) throws ClassNotFoundException
     {
-        this.testClass = testClass;
+        clazz = Class.forName(testClass);
+    }
+
+    public TestExecutor(Class clazz)
+    {
+        this.clazz = clazz;
     }
 
     public void runTests()
     {
-        System.out.println("Running tests for " + testClass);
+        System.out.println("[TestExecutor] Running tests for " + clazz.getName());
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
             .selectors(
-                selectClass(testClass)
+                selectClass(clazz)
             )
             .build();
 

@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestExecutorTest
 {
     @Test
-    public void testTestExecutor()
+    public void testTestExecutor() throws ClassNotFoundException
     {
         TestExecutor executor = new TestExecutor(SimpleDemoTest.class.getName());
         executor.runTests();
