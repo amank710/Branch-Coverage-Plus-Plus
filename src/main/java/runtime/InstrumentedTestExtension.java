@@ -44,9 +44,6 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
         Map<String, Set<String>> instrumentedMethodMapping = new HashMap<>();
         for (Class<?> instClass : instClasses) {
-            //String path_home = Optional.ofNullable(System.getProperty("PATH_COVERAGE_SOURCE_HOME")).orElseThrow(() -> new IllegalArgumentException("Please set the PATH_COVERAGE_SOURCE_HOME environment variable"));
-            //String local_source_path = instClass.getPackage().getName().replaceAll("\\.", "/");
-            //System.out.println("[InstrumentedTestExtension]: Trying to find source code at " + path_home + "/" + local_source_path + "/" + instClass.getSimpleName() + ".java");
             URL location = instClass.getProtectionDomain().getCodeSource().getLocation();
             System.out.println("[InstrumentedTestExtension]: Found source code at " + location);
 

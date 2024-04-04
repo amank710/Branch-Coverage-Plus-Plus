@@ -22,7 +22,7 @@ public class ClassLoader
         this.files = files;
     }
 
-    public Map<String, Class<?>> loadClasses()
+    public Map<String, Class<?>> loadClasses() throws CompilationError
     {
         ArrayList<String> args = new ArrayList<String>();
         args.add("-g");
@@ -32,7 +32,11 @@ public class ClassLoader
         }
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        compiler.run(null, null, null, args.toArray(new String[0]));
+        if (compiler.run(null, null, null, args.toArray(new String[0])) != 0)
+        {
+            System.out.println("[ClassLoader] Compilation failed");
+            throw new CompilationError("Compilation of " + args + " failed");
+        }
 
         Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
         for (String localSource : files)
