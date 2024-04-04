@@ -106,9 +106,9 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         context.publishReportEntry(Constants.COVERAGE_KEY, baos.toString("ISO-8859-1"));
     }
 
-    private void calcPathCoverage()
+    private PathCoverage calcPathCoverage()
     {
-        
+       return new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
