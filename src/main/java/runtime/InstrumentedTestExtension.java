@@ -27,10 +27,12 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
     // input to the dynamic analysis
     Map<String, FunctionContext> instrumentedMethodContext;
+    Map<String, List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> satisfiablePaths;
 
     public InstrumentedTestExtension()
     {
         instrumentedMethodPaths = new HashMap<>();
+        satisfiablePaths = new HashMap<>();
     }
 
     @Override
@@ -86,7 +88,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             Path path = new Path();
             entry.getValue().forEach(t -> path.addLine(t.first()));
             paths.add(path);
-            instrumentedMethodPaths.put(methodName, paths);
+            setExploredPaths(methodName, paths);
         }
     }
 
@@ -104,6 +106,99 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         oos.close();
         
         context.publishReportEntry("coverage", baos.toString("ISO-8859-1"));
+    }
+
+    public Map<Integer, Integer> getLineHits(String methodName)
+    {
+        Set<Path> paths = instrumentedMethodPaths.get(methodName);
+        Map<Integer, Integer> lineHits = new HashMap<>();
+
+        for (Path path : paths)
+        {
+            for (Integer line : path)
+            {
+                lineHits.put(line, lineHits.getOrDefault(line, 0) + 1);
+            }
+        }
+
+        return lineHits;
+    }
+
+    public Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getUncoveredPathSegments(String methodName)
+    {
+        HashSet<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPaths = new HashSet<>();
+
+        for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : satisfiablePaths.get(methodName))
+        {
+            ArrayList<ArrayList<Integer>> uncoveredPathSegments = new ArrayList<>();
+            for (ArrayList<Integer> segment : path_segment.second())
+            {
+                if (!isCovered(methodName, segment))
+                {
+                    uncoveredPathSegments.add(segment);
+                }
+            }
+
+            if (uncoveredPathSegments.size() > 0)
+            {
+                uncoveredPaths.add(new Tuple<>(path_segment.first(), uncoveredPathSegments));
+            }
+        }
+
+        return uncoveredPaths;
+    }
+
+    void setExploredPaths(String methodName, Set<Path> paths)
+    {
+        instrumentedMethodPaths.put(methodName, paths);
+    }
+
+    void setSatisfiablePaths(String methodName, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> viablePaths)
+    {
+        List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> paths = new ArrayList<>();
+
+        for (Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> path : viablePaths)
+        {
+            for (Map.Entry<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> entry : path.entrySet())
+            {
+                Tuple<Integer, Integer> range = new Tuple<>(entry.getKey().get(0), entry.getKey().get(1));
+                paths.add(new Tuple<>(range, entry.getValue()));
+            }
+        }
+
+        satisfiablePaths.put(methodName, paths);
+    }
+
+    List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getExplorablePaths(String methodName)
+    {
+        return satisfiablePaths.get(methodName);
+    }
+
+    private Boolean isCovered(String methodName, ArrayList<Integer> segment)
+    {
+        Collections.sort(segment);
+
+        for (Path executedPath : instrumentedMethodPaths.get(methodName))
+        {
+            LinkedList<Integer> segmentQueue = new LinkedList<>(segment);
+
+            for (Integer lineNumber : executedPath)
+            {
+                Integer segmentLineNumber = segmentQueue.peek();
+
+                if (lineNumber.equals(segmentLineNumber))
+                {
+                    segmentQueue.pop();
+                }
+
+                if (segmentQueue.isEmpty())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void printCoverage()
