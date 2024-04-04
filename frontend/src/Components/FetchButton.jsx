@@ -45,7 +45,8 @@ const FetchButton = () => {
             }
         })
             .then(response => response.json())
-            .then(data => setPathCovValues(data));
+            .then(data => setPathCovValues(data))
+            .catch(err => console.log(err));
     }
 
     const setPathCovValues = (data) => {

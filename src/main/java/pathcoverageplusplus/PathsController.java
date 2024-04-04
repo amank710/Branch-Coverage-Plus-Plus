@@ -4,10 +4,11 @@ import common.PathCoverage;
 import common.functions.Path;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -28,18 +29,20 @@ public class PathsController {
 
     // MOCK INPUT BLOCK END
 
+    String codefilename = "";
+    String testfilename = "";
+
     @GetMapping
     public ResponseEntity<PathCoverage> getPathValues() {
         // Setting mock input block START
 
         // Mapping line numbers to number of hits per line
-        checkA.put(11, 2);
-        checkA.put(12, 2);
-        checkA.put(14, 3);
+        checkA.put(14, 2);
+        checkA.put(15, 3);
 
-        checkB.put(19, 4);
-        checkB.put(20, 2);
-        checkB.put(21, 2);
+        checkB.put(21, 4);
+        checkB.put(22, 2);
+        checkB.put(23, 2);
 
         // Mapping Method names to line hits
         mockHits.put("checkA", checkA);
@@ -47,13 +50,13 @@ public class PathsController {
 
         // Mapping uncovered line numbers to the array lists
         checkAUncovered = new ArrayList<>();
-        checkAUncovered.add(9);
-        checkAUncovered.add(10);
+        checkAUncovered.add(12);
+        checkAUncovered.add(13);
 
         checkBUncovered = new ArrayList<>();
-        checkBUncovered.add(22);
-        checkBUncovered.add(23);
         checkBUncovered.add(24);
+        checkBUncovered.add(25);
+        checkBUncovered.add(26);
 
         uncoveredPathsA = new ArrayList<>();
         uncoveredPathsA.add(checkAUncovered);
@@ -72,5 +75,44 @@ public class PathsController {
 
         // Setting mock input block END
         return new ResponseEntity<PathCoverage>(mockInput, HttpStatus.OK);
+    }
+
+    @PutMapping
+    public ResponseEntity<String> handlePutRequest(@RequestParam("file")MultipartFile file) {
+        if (!file.isEmpty()) {
+            try {
+                // File Putting
+                String directory = "C:\\Users\\Aticcus\\OneDrive\\Documents\\GitHub\\Group4Project2\\resources\\sandbox\\";
+                String filename = file.getOriginalFilename();
+                System.out.println(directory + filename);
+                file.transferTo(new File(directory + filename));
+
+                // setting filenames
+                assert filename != null;
+                if (filename.toLowerCase().contains("test")) {
+                    testfilename = filename;
+                } else {
+                    codefilename = filename;
+                }
+
+                // determining if we need to execute stuff
+                if (!testfilename.isEmpty() && !codefilename.isEmpty()) {
+                    handleExecutor();
+                }
+
+                // String classname = filename.substring(0, filename.indexOf("."));
+                return new ResponseEntity<String>("File and data uploaded successfully", HttpStatus.OK);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return new ResponseEntity<String>("Error uploading file", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<String>("File is empty", HttpStatus.NO_CONTENT);
+        }
+    }
+
+    private void handleExecutor() {
+        System.out.println("TIME TO RUMBLE");
+        
     }
 }
