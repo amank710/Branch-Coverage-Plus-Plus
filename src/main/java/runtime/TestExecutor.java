@@ -17,10 +17,10 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 
 public class TestExecutor
 {
-    private String testClass;
     private TestExecutionSummary summary;
-    private Optional<PathCoverage> pathCoverage;
     private Class clazz;
+
+    private Optional<PathCoverage> pathCoverage = Optional.empty();
 
     public TestExecutor(String testClass) throws ClassNotFoundException
     {

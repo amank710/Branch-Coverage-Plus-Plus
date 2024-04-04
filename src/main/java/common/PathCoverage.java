@@ -7,22 +7,24 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
 
+import common.util.Tuple;
+
 public class PathCoverage implements Serializable
 {
-    private double pathCoverageScore;
+    private Map<String, Tuple<Integer, Integer>> pathCoverageMetadata;
     private Map<String, Map<Integer, Integer>> lineHits;
     private Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths;
 
-    public PathCoverage(double pathCoverageScore, Map<String, Map<Integer, Integer>> lineHits, Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths)
+    public PathCoverage(Map<String, Tuple<Integer, Integer>> pathCoverageMetadata, Map<String, Map<Integer, Integer>> lineHits, Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths)
     {
-        this.pathCoverageScore = pathCoverageScore;
+        this.pathCoverageMetadata = pathCoverageMetadata;
         this.lineHits = lineHits;
         this.uncoveredPaths = uncoveredPaths;
     }
 
-    public double getPathCoverageScore()
+    public Map<String, Tuple<Integer, Integer>> getPathCoverageMetadata()
     {
-        return pathCoverageScore;
+        return pathCoverageMetadata;
     }
 
     public Map<String, Map<Integer, Integer>> getLineHits()
@@ -39,7 +41,7 @@ public class PathCoverage implements Serializable
     public String toString()
     {
         return "PathCoverage{" +
-                "pathCoverageScore=" + pathCoverageScore +
+                "pathCoverageMetadata=" + pathCoverageMetadata + 
                 ", lineHits=" + lineHits +
                 ", uncoveredPaths=" + uncoveredPaths +
                 '}';

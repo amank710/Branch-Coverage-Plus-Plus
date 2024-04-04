@@ -14,7 +14,7 @@ import org.junit.platform.launcher.TestIdentifier;
 
 class TestExecutorListener implements TestExecutionListener
 {
-    private Optional<PathCoverage> pathCoverage;
+    private Optional<PathCoverage> pathCoverage = Optional.empty();
 
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry)
     {

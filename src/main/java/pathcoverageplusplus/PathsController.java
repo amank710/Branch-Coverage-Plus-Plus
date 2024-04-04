@@ -2,6 +2,7 @@ package pathcoverageplusplus;
 
 import common.PathCoverage;
 import common.functions.Path;
+import common.util.Tuple;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ public class PathsController {
     ArrayList<ArrayList<Integer>> uncoveredPathsB;
     ArrayList<Integer> checkAUncovered;
     ArrayList<Integer> checkBUncovered;
-    double mockCoverageScore = 34;
+    Map<String, Tuple<Integer, Integer>> mockPathCoverageMetadata = new HashMap<>();
 
     PathCoverage mockInput;
 
@@ -63,9 +64,13 @@ public class PathsController {
         mockUncovered.put("checkA", uncoveredPathsA);
         mockUncovered.put("checkB", uncoveredPathsB);
 
+        // Mapping method names to path coverage metadata
+        mockPathCoverageMetadata.put("checkA", new Tuple<>(5, 3));
+        mockPathCoverageMetadata.put("checkB", new Tuple<>(5, 2));
+
         // setting mock input
         mockInput = new PathCoverage(
-                mockCoverageScore,
+                mockPathCoverageMetadata,
                 mockHits,
                 mockUncovered
         );
