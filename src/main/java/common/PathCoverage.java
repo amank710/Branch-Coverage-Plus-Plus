@@ -35,17 +35,13 @@ public class PathCoverage implements Serializable
         return uncoveredPaths;
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException
+    @Override
+    public String toString()
     {
-        out.writeDouble(pathCoverageScore);
-        out.writeObject(lineHits);
-        out.writeObject(uncoveredPaths);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
-    {
-        pathCoverageScore = in.readDouble();
-        lineHits = (Map<String, Map<Integer, Integer>>) in.readObject();
-        uncoveredPaths = (Map<String, ArrayList<ArrayList<Integer>>>) in.readObject();
+        return "PathCoverage{" +
+                "pathCoverageScore=" + pathCoverageScore +
+                ", lineHits=" + lineHits +
+                ", uncoveredPaths=" + uncoveredPaths +
+                '}';
     }
 }
