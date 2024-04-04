@@ -56,7 +56,7 @@
     </properties>
     <build>
         <plugins>
-        <!-- Other plugins ... -->
+            <!-- Other plugins ... -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -64,6 +64,15 @@
                     <argLine>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 -Djdk.attach.allowAttachSelf=true -Xint</argLine>
                     <systemPropertyVariables>
                         <PATH_COVERAGE_SOURCE_HOME>${project.basedir}/src/main/java</PATH_COVERAGE_SOURCE_HOME>
+                        <SANDBOX_HOME>${project.basedir}/resources/sandbox</SANDBOX_HOME>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
                         <SANDBOX_HOME>${project.basedir}/resources/sandbox</SANDBOX_HOME>
                     </systemPropertyVariables>
                 </configuration>
