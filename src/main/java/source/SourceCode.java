@@ -1,5 +1,9 @@
 package source;
-class SourceCode {
+
+import runtime.Instrumentable;
+
+public class SourceCode {
+    @Instrumentable
     public String foo(int number) {
         int x = 42;
         int y = number;
