@@ -2,6 +2,7 @@ package runtime;
 
 import common.functions.FunctionContext;
 import common.functions.Path;
+import common.Constants;
 import common.PathCoverage;
 import common.util.Tuple;
 import graph.Node;
@@ -96,19 +97,18 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         System.out.println("[InstrumentedTestExtension]: Test suite completed");
         System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
 
-        PathCoverage pathCoverage = new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
+        PathCoverage pathCoverage = calcPathCoverage();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(pathCoverage);
         oos.flush();
         oos.close();
-        
-        context.publishReportEntry("coverage", baos.toString("ISO-8859-1"));
+        context.publishReportEntry(Constants.COVERAGE_KEY, baos.toString("ISO-8859-1"));
     }
 
-    private void printCoverage()
+    private PathCoverage calcPathCoverage()
     {
-        System.out.println("[InstrumentedTestExtension]: Printing coverage...");
+       return new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
