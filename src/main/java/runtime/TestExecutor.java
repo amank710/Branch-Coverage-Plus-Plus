@@ -1,6 +1,7 @@
 package runtime;
 
 import common.PathCoverage;
+import demo.SimpleDemo2Test;
 
 import java.util.Optional;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -37,7 +38,7 @@ public class TestExecutor
         System.out.println("[TestExecutor] Running tests for " + clazz.getName());
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
             .selectors(
-                selectClass(SimpleDemoTest.class)
+                selectClass(clazz)
             )
             .build();
 
