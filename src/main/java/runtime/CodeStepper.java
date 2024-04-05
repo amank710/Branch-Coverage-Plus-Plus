@@ -27,6 +27,7 @@ import com.sun.jdi.VirtualMachine;
 class CodeStepper
 {
     private Map<String, Set<String>> instrumentedMethods;
+    private Map<String, Map<String, Tuple<Integer, Integer>>> methodBounds;
     private EventManager eventManager;
     private VirtualMachine vm;
 
@@ -107,6 +108,7 @@ class CodeStepper
     CodeStepper(Map<String, Set<String>> instrumentedMethods)
     {
         this.instrumentedMethods = instrumentedMethods;
+        this.methodBounds = new HashMap<String, Map<String, Tuple<Integer, Integer>>>();
 
         try
         {
@@ -137,6 +139,11 @@ class CodeStepper
         eventManager.reset();
     }
 
+    public Map<String, Map<String, Tuple<Integer, Integer>>> getMethodBounds()
+    {
+        return methodBounds;
+    }
+
     private void connectToCurrentMachine() throws IllegalConnectorArgumentsException, IOException
     {
         AttachingConnector ac = Bootstrap.virtualMachineManager().attachingConnectors().stream().filter(c -> c.name().equals("com.sun.jdi.ProcessAttach")).findFirst()
@@ -161,6 +168,7 @@ class CodeStepper
         {
             String className = entry.getKey();
             Set<String> methodNames = entry.getValue();
+            HashMap<String, Tuple<Integer, Integer>> bounds = new HashMap<String, Tuple<Integer, Integer>>();
 
             try
             {
@@ -169,25 +177,22 @@ class CodeStepper
                 {
                     Method method = classType.methodsByName(methodName).get(0);
 
-                    byte[] bytecodes = method.bytecodes();
                     System.out.print("Instrumenting method " + method.name() + " in class " + className + ": ");
-                    // print bytecodes in HEX
-                    for (byte b : bytecodes)
-                    {
-                       System.out.printf("0x%02X ", b);
-                    }
-                    System.out.println();
-                    
-
-                    for (Location location : method.allLineLocations())
+;
+                    List<Location> locations = new ArrayList<>(method.allLineLocations());
+                    for (Location location : locations)
                     {
                         addBreakpoint(location);
                     }
+                    locations.sort((l1, l2) -> l1.lineNumber() - l2.lineNumber());
+                    bounds.put(methodName, new Tuple<Integer, Integer>(locations.get(0).lineNumber(), locations.get(locations.size() - 1).lineNumber()));
                 }
             } catch (AbsentInformationException e) {
                 System.out.println("[CodeStepper] Please compile the class with debug information");
                 throw e;
             }
+
+            methodBounds.put(className, bounds);
         }
     }
 }

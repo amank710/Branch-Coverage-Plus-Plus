@@ -1,11 +1,9 @@
 package common;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import common.util.Tuple;
 
@@ -13,9 +11,9 @@ public class PathCoverage implements Serializable
 {
     private Map<String, Tuple<Integer, Integer>> pathCoverageMetadata;
     private Map<String, Map<Integer, Integer>> lineHits;
-    private Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths;
+    private Map<String, Set<List<Integer>>> uncoveredPaths;
 
-    public PathCoverage(Map<String, Tuple<Integer, Integer>> pathCoverageMetadata, Map<String, Map<Integer, Integer>> lineHits, Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths)
+    public PathCoverage(Map<String, Tuple<Integer, Integer>> pathCoverageMetadata, Map<String, Map<Integer, Integer>> lineHits, Map<String, Set<List<Integer>>> uncoveredPaths)
     {
         this.pathCoverageMetadata = pathCoverageMetadata;
         this.lineHits = lineHits;
@@ -32,7 +30,7 @@ public class PathCoverage implements Serializable
         return lineHits;
     }
 
-    public Map<String, ArrayList<ArrayList<Integer>>> getUncoveredPaths()
+    public Map<String, Set<List<Integer>>> getUncoveredPaths()
     {
         return uncoveredPaths;
     }

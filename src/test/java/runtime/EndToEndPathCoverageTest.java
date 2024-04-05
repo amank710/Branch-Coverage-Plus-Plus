@@ -26,6 +26,6 @@ class EndToEndPathCoverageTest
         TestExecutor testExecutor = new TestExecutor(loadedClasses.get("DynamicClassTest"));
         testExecutor.runTests();
         PathCoverage pathCoverage = testExecutor.getPathCoverage();
-        assertEquals(pathCoverage.getPathCoverageMetadata(), new Tuple<Integer, Integer>(1, 1));
+        assertEquals(pathCoverage.getPathCoverageMetadata().get("foo"), new Tuple<Integer, Integer>(1, 1));
     }
 }

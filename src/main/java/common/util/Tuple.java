@@ -1,6 +1,8 @@
 package common.util;
 
-public class Tuple<A, B>
+import java.io.Serializable;
+
+public class Tuple<A, B> implements Serializable
 {
     private A a;
     private B b;
