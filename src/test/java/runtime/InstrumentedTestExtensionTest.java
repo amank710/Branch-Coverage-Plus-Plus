@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import common.functions.Path;
 import common.util.Tuple;
+import common.PathCoverage;
 
 import java.util.*;
 
@@ -48,19 +49,46 @@ public class InstrumentedTestExtensionTest
     }
 
     @Test
-    public void testUnCoveredPaths()
+    public void testUncoveredPaths()
     {
         InstrumentedTestExtension extension = new InstrumentedTestExtension();
-        extension.setSatisfiablePaths("testFunc", createMockPaths());
-        List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> paths = extension.satisfiablePaths.get("testFunc");
+        extension.processStaticAnalysis(createMockPaths(), SimpleDemo.class.getName(), getMockClassToMethodBounds());
+        Set<List<Integer>> paths = extension.getSatisfiablePaths("testFunc");
 
         assertNotNull(paths);
         System.out.println(paths);
 
         extension.setExploredPaths("testFunc", createMockTestPaths());
-        Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPaths = extension.getUncoveredPathSegments("testFunc");
-        System.out.println(uncoveredPaths);
+        Set<List<Integer>> uncoveredPaths = extension.getUncoveredPathSegments("testFunc");
+        System.out.println("uncovered paths: " + uncoveredPaths);
         assertEquals(2, uncoveredPaths.size());
+    }
+
+    @Test
+    public void testPathCoverage()
+    {
+        InstrumentedTestExtension extension = new InstrumentedTestExtension();
+        extension.processStaticAnalysis(createMockPaths(), SimpleDemo.class.getName(), getMockClassToMethodBounds());
+        Set<List<Integer>> paths = extension.getSatisfiablePaths("testFunc");
+        assertNotNull(paths);
+        System.out.println(paths);
+
+        extension.setExploredPaths("testFunc", createMockTestPaths());
+        PathCoverage pathCoverage = extension.calculatePathCoverage();
+        assertEquals(pathCoverage.getPathCoverageMetadata().size(), 1);
+
+        int totalPaths = paths.size();
+        assertEquals(pathCoverage.getPathCoverageMetadata().get("testFunc"), new Tuple<>(totalPaths - 2, totalPaths));
+    }
+
+    private Map<String, Map<String, Tuple<Integer, Integer>>> getMockClassToMethodBounds()
+    {
+        Map<String, Map<String, Tuple<Integer, Integer>>> classToMethodBounds = new HashMap<>();
+        Map<String, Tuple<Integer, Integer>> methodBounds = new HashMap<>();
+        methodBounds.put("testFunc", new Tuple<>(14, 160));
+        classToMethodBounds.put(SimpleDemo.class.getName(), methodBounds);
+
+        return classToMethodBounds;
     }
 
     private Set<Path> createMockTestPaths()
