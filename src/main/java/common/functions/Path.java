@@ -1,23 +1,27 @@
 package common.functions;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * A Path corresponds to a code path in a FunctionContext.
  *
  * It corresponds to a set of line numbers.
  */
-public class Path
+public class Path implements Iterable<Integer>
 {
-    private List<Integer> path;
+    private Set<Integer> path;
 
     public Path ()
     {
-        path = new java.util.ArrayList<>();
+        path = new TreeSet<Integer>();
     }
 
-    public List<Integer> getPath()
+    public Path(Set<Integer> path)
+    {
+        this.path = path;
+    }
+
+    public Collection<Integer> getPath()
     {
         return path;
     }
@@ -31,14 +35,17 @@ public class Path
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < path.size(); i++)
+        for (int line : path)
         {
-            sb.append(path.get(i));
-            if (i < path.size() - 1)
-            {
-                sb.append(" -> ");
-            }
+            sb.append(line);
+            sb.append(" ");
         }
         return sb.toString();
+    }
+
+    @Override
+    public Iterator<Integer> iterator()
+    {
+        return path.iterator();
     }
 }

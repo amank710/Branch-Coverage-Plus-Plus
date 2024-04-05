@@ -17,10 +17,10 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 
 public class TestExecutor
 {
-    private String testClass;
     private TestExecutionSummary summary;
-    private Optional<PathCoverage> pathCoverage;
     private Class clazz;
+
+    private Optional<PathCoverage> pathCoverage = Optional.empty();
 
     public TestExecutor(String testClass) throws ClassNotFoundException
     {
@@ -37,7 +37,7 @@ public class TestExecutor
         System.out.println("[TestExecutor] Running tests for " + clazz.getName());
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
             .selectors(
-                selectClass(clazz)
+                selectClass(SimpleDemoTest.class)
             )
             .build();
 
@@ -51,8 +51,14 @@ public class TestExecutor
             launcher.registerTestExecutionListeners(testExecutorListener);
 
             launcher.execute(request);
-        } 
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            throw e;
+        }
 
+        System.out.println("[TestExecutor] Tests finished for " + clazz.getName());
         summary = listener.getSummary();
         pathCoverage = testExecutorListener.getPathCoverage();
     }

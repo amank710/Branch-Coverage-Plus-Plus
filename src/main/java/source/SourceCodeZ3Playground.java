@@ -1,6 +1,6 @@
 package source;
 
-class SourceCodeZ3Playground {
+public class SourceCodeZ3Playground {
     public static Boolean booleanFlags(boolean flag, int ff) {
 
         // No variable tracking

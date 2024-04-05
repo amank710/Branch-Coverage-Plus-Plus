@@ -2,10 +2,8 @@ package runtime;
 
 import common.functions.FunctionContext;
 import common.functions.Path;
-import common.Constants;
 import common.PathCoverage;
 import common.util.Tuple;
-import graph.Node;
 import parser.VariableMapBuilder;
 
 import com.sun.jdi.AbsentInformationException;
@@ -28,10 +26,13 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
     // input to the dynamic analysis
     Map<String, FunctionContext> instrumentedMethodContext;
+    Map<String, List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>>> satisfiablePaths;
 
     public InstrumentedTestExtension()
     {
+        System.out.println("[InstrumentedTestExtension]: Initializing extension...");
         instrumentedMethodPaths = new HashMap<>();
+        satisfiablePaths = new HashMap<>();
     }
 
     @Override
@@ -49,7 +50,8 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             System.out.println("[InstrumentedTestExtension]: Found source code at " + location);
 
             VariableMapBuilder variableMapBuilder = new VariableMapBuilder(location.getPath(), instClass.getSimpleName() + ".java");
-            Node root = variableMapBuilder.build();
+            variableMapBuilder.build();
+            setSatisfiablePaths(instClass.getName(), variableMapBuilder.getPath());
 
             Set<Method> instMethods = getInstrumentable(instClass);
             System.out.println("[InstrumentedTestExtension]: Found instrumentable methods for " + instClass.getName() + ": " + instMethods);
@@ -87,7 +89,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             Path path = new Path();
             entry.getValue().forEach(t -> path.addLine(t.first()));
             paths.add(path);
-            instrumentedMethodPaths.put(methodName, paths);
+            setExploredPaths(methodName, paths);
         }
     }
 
@@ -97,18 +99,147 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         System.out.println("[InstrumentedTestExtension]: Test suite completed");
         System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
 
-        PathCoverage pathCoverage = calcPathCoverage();
+        PathCoverage pathCoverage = calculatePathCoverage();
+        System.out.println("[InstrumentedTestExtension]: Path coverage: " + pathCoverage);
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(pathCoverage);
         oos.flush();
         oos.close();
-        context.publishReportEntry(Constants.COVERAGE_KEY, baos.toString("ISO-8859-1"));
+        
+        context.publishReportEntry("coverage", baos.toString("ISO-8859-1"));
     }
 
-    private PathCoverage calcPathCoverage()
+    Map<Integer, Integer> getLineHits(String methodName)
     {
-       return new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
+        Set<Path> paths = instrumentedMethodPaths.get(methodName);
+        Map<Integer, Integer> lineHits = new HashMap<>();
+
+        for (Path path : paths)
+        {
+            for (Integer line : path)
+            {
+                lineHits.put(line, lineHits.getOrDefault(line, 0) + 1);
+            }
+        }
+
+        return lineHits;
+    }
+
+    Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getUncoveredPathSegments(String methodName)
+    {
+        HashSet<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPaths = new HashSet<>();
+
+        for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : satisfiablePaths.get(methodName))
+        {
+            ArrayList<ArrayList<Integer>> uncoveredPathSegments = new ArrayList<>();
+            for (ArrayList<Integer> segment : path_segment.second())
+            {
+                if (!isCovered(methodName, segment))
+                {
+                    uncoveredPathSegments.add(segment);
+                }
+            }
+
+            if (uncoveredPathSegments.size() > 0)
+            {
+                uncoveredPaths.add(new Tuple<>(path_segment.first(), uncoveredPathSegments));
+            }
+        }
+
+        return uncoveredPaths;
+    }
+
+    void setExploredPaths(String methodName, Set<Path> paths)
+    {
+        instrumentedMethodPaths.put(methodName, paths);
+    }
+
+    void setSatisfiablePaths(String methodName, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> viablePaths)
+    {
+        List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> paths = new ArrayList<>();
+
+        for (Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> path : viablePaths)
+        {
+            for (Map.Entry<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> entry : path.entrySet())
+            {
+                Tuple<Integer, Integer> range = new Tuple<>(entry.getKey().get(0), entry.getKey().get(1));
+                paths.add(new Tuple<>(range, entry.getValue()));
+            }
+        }
+
+        satisfiablePaths.put(methodName, paths);
+    }
+
+    List<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> getExplorablePaths(String methodName)
+    {
+        return satisfiablePaths.get(methodName);
+    }
+
+    PathCoverage calculatePathCoverage()
+    {
+        Map<String, Tuple<Integer, Integer>> pathCoverageMetadata = new HashMap<>();
+        Map<String, Map<Integer, Integer>> lineHits = new HashMap<>();
+        Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths = new HashMap<>();
+
+        for (String methodName : satisfiablePaths.keySet())
+        {
+            Map<Integer, Integer> methodlineHits = getLineHits(methodName);
+            ArrayList<ArrayList<Integer>> methodUncoveredPaths = getUncoveredPaths(methodName);
+            int totalPaths = satisfiablePaths.get(methodName).size();
+            int numCoveredPaths = totalPaths - methodUncoveredPaths.size();
+
+            pathCoverageMetadata.put(methodName, new Tuple<>(numCoveredPaths, totalPaths));
+            lineHits.put(methodName, methodlineHits);
+            uncoveredPaths.put(methodName, methodUncoveredPaths);
+        }
+
+        return new PathCoverage(pathCoverageMetadata, lineHits, uncoveredPaths);
+    }
+
+    private ArrayList<ArrayList<Integer>> getUncoveredPaths(String methodName)
+    {
+        ArrayList<ArrayList<Integer>> uncoveredPaths = new ArrayList<>();
+
+        Set<Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>>> uncoveredPathSegments = getUncoveredPathSegments(methodName);
+        for (Tuple<Tuple<Integer, Integer>, ArrayList<ArrayList<Integer>>> path_segment : uncoveredPathSegments)
+        {
+            for (ArrayList<Integer> segment : path_segment.second())
+            {
+                segment.add(0, path_segment.first().first());
+                uncoveredPaths.add(segment);
+            }
+        }
+
+        return uncoveredPaths;
+    }
+
+    private Boolean isCovered(String methodName, ArrayList<Integer> segment)
+    {
+        Collections.sort(segment);
+
+        for (Path executedPath : instrumentedMethodPaths.get(methodName))
+        {
+            LinkedList<Integer> segmentQueue = new LinkedList<>(segment);
+
+            for (Integer lineNumber : executedPath)
+            {
+                Integer segmentLineNumber = segmentQueue.peek();
+
+                if (lineNumber.equals(segmentLineNumber))
+                {
+                    segmentQueue.pop();
+                }
+
+                if (segmentQueue.isEmpty())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)
