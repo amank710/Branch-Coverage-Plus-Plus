@@ -2,10 +2,13 @@ package pathcoverageplusplus;
 
 import common.PathCoverage;
 import common.functions.Path;
+import jit.ClassLoader;
+import jit.CompilationError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import runtime.TestExecutor;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +85,7 @@ public class PathsController {
         if (!file.isEmpty()) {
             try {
                 // File Putting
-                String directory = "C:\\Users\\Aticcus\\OneDrive\\Documents\\GitHub\\Group4Project2\\resources\\sandbox\\";
+                String directory = "C:\\Users\\Aticcus\\Documents\\GitHub\\Group4Project2\\resources\\sandbox\\";
                 String filename = file.getOriginalFilename();
                 System.out.println(directory + filename);
                 file.transferTo(new File(directory + filename));
@@ -112,7 +115,19 @@ public class PathsController {
     }
 
     private void handleExecutor() {
-        System.out.println("TIME TO RUMBLE");
-        
+        String root = "C:\\Users\\Aticcus\\Documents\\GitHub\\Group4Project2\\resources\\sandbox\\";
+        String[] paths = new String[] {codefilename, testfilename};
+        System.out.println(paths[0]);
+        try {
+            String classname = codefilename.substring(0, codefilename.indexOf("."));
+            ClassLoader classLoader = new ClassLoader(root, paths);
+            Map<String, Class<?>> classes = classLoader.loadClasses();
+            TestExecutor testExecutor = new TestExecutor(classes.get(classname));
+            testExecutor.runTests();
+            PathCoverage pathCoverage = testExecutor.getPathCoverage();
+            System.out.println(pathCoverage.getPathCoverageScore());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
