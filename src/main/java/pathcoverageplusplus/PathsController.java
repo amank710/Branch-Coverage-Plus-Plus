@@ -2,7 +2,7 @@ package pathcoverageplusplus;
 
 import common.PathCoverage;
 import common.util.Tuple;
-import jit.ClassLoader;
+import jit.RuntimeClassLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -121,8 +121,8 @@ public class PathsController {
         System.out.println(paths[0]);
         try {
             String root = Optional.ofNullable(System.getProperty("SANDBOX_HOME")).orElseThrow(() -> new IllegalArgumentException("SANDBOX_HOME not set"));
-            String classname = codefilename.substring(0, codefilename.indexOf("."));
-            ClassLoader classLoader = new ClassLoader(root, paths);
+            String classname = testfilename.substring(0, testfilename.indexOf("."));
+            RuntimeClassLoader classLoader = new RuntimeClassLoader(root, paths);
             Map<String, Class<?>> classes = classLoader.loadClasses();
             TestExecutor testExecutor = new TestExecutor(classes.get(classname));
             testExecutor.runTests();

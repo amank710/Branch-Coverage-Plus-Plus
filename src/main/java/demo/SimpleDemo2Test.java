@@ -6,8 +6,8 @@ import runtime.InstrumentedTestExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 
-@Instrument(SimpleDemo.class)
-@ExtendWith(InstrumentedTestExtension.class)
+//@Instrument(SimpleDemo.class)
+//@ExtendWith(InstrumentedTestExtension.class)
 public class SimpleDemo2Test
 {
     @Test

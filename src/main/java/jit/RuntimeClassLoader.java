@@ -1,5 +1,9 @@
 package jit;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import runtime.Instrumentable;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,12 +15,12 @@ import java.util.Map;
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler;
 
-public class ClassLoader
+public class RuntimeClassLoader
 {
     private String[] files;
     private String root;
 
-    public ClassLoader(String root, String[] files)
+    public RuntimeClassLoader(String root, String[] files)
     {
         this.root = root;
         this.files = files;
@@ -34,23 +38,37 @@ public class ClassLoader
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler.run(null, null, null, args.toArray(new String[0])) != 0)
         {
-            System.out.println("[ClassLoader] Compilation failed");
+            System.out.println("[RuntimeClassLoader] Compilation failed");
             throw new CompilationError("Compilation of " + args + " failed");
         }
 
         Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
+
+        File fileRoot = new File(root);
+        System.out.println("[RuntimeClassLoader] URL: " + fileRoot);
+
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader runtimeClassLoader = null;
+        try
+        {
+            runtimeClassLoader = new URLClassLoader(new URL[]{fileRoot.toURI().toURL()}, classLoader);
+            Thread.currentThread().setContextClassLoader(runtimeClassLoader);
+        }
+        catch (Exception e)
+        {
+            System.out.println("[RuntimeClassLoader] Error with URL: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         for (String localSource : files)
         {
             try
             {
-                File fileRoot = new File(root);
-                System.out.println("[ClassLoader] URL: " + fileRoot);
-                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { fileRoot.toURI().toURL() });
                 String className = localSource.replace(".java", "");
                 System.out.println("[ClassLoader] Loading class " + className);
-                classes.put(className, classLoader.loadClass(className));
+                classes.put(className, runtimeClassLoader.loadClass(className));
             }
-            catch (ClassNotFoundException|MalformedURLException e)
+            catch (ClassNotFoundException e)
             {
                 System.out.println("[ClassLoader] Error with loading: " + e.getMessage());
                 e.printStackTrace();

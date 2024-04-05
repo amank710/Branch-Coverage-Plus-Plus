@@ -3,7 +3,7 @@ package runtime;
 import common.PathCoverage;
 import common.util.Tuple;
 import runtime.TestExecutor;
-import jit.ClassLoader;
+import jit.RuntimeClassLoader;
 import jit.CompilationError;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +21,7 @@ class EndToEndPathCoverageTest
     {
         String root = Optional.ofNullable(System.getProperty("SANDBOX_HOME")).orElseThrow(() -> new IllegalArgumentException("SANDBOX_HOME not set"));
         String[] paths = new String[] { "DynamicClass.java", "DynamicClassTest.java" };
-        ClassLoader classLoader = new ClassLoader(root, paths);
+        RuntimeClassLoader classLoader = new RuntimeClassLoader(root, paths);
         Map<String, Class<?>> loadedClasses = classLoader.loadClasses();
         TestExecutor testExecutor = new TestExecutor(loadedClasses.get("DynamicClassTest"));
         testExecutor.runTests();
