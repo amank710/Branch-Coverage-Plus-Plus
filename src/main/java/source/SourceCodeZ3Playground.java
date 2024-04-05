@@ -17,7 +17,7 @@ class SourceCodeZ3Playground {
             System.out.println("print");
 //            System.out.println("print");
             if (flag)  { // Satisfiable
-                output = true;
+                flag = false;
                 if (ff > 5) {
                     output = false;
                     if (ff > 7) {

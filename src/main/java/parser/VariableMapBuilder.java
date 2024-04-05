@@ -30,6 +30,7 @@ public class VariableMapBuilder {
             cu.accept(variableVisitor, null);
             List<Integer> lines = variableVisitor.getReturnLines();
             Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> newPaths = new Stack<>();
+            // sort the paths, remove the paths that contain the return line
             for (int i = 0; i < paths.size(); i++) {
                 Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> map = paths.get(i);
                 Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> newMap = new HashMap<>();

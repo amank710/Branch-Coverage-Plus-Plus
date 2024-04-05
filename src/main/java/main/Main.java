@@ -11,6 +11,8 @@ public class Main {
 //        System.out.println("BUild");
 //        root.visualize();
 //        System.out.println("Build");
+        System.out.println("Path");
+        System.out.println(variableMapBuilder.getPath());
         for (int i = 0; i <variableMapBuilder.getPath().size(); i++) {
             System.out.println("If block: " + variableMapBuilder.getPath().get(i).keySet() + ":");
             Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> map = variableMapBuilder.getPath().get(i);
