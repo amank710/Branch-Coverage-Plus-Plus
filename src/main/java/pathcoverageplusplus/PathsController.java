@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import runtime.TestExecutor;
-import runtime.InstrumentedTestExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,11 +20,11 @@ public class PathsController {
     Map<String, Map<Integer, Integer>> mockHits = new HashMap<>();
     Map<Integer, Integer> checkA = new HashMap<>();
     Map<Integer, Integer> checkB = new HashMap<>();
-    Map<String, ArrayList<ArrayList<Integer>>> mockUncovered = new HashMap<>();
-    ArrayList<ArrayList<Integer>> uncoveredPathsA;
-    ArrayList<ArrayList<Integer>> uncoveredPathsB;
-    ArrayList<Integer> checkAUncovered;
-    ArrayList<Integer> checkBUncovered;
+    Map<String, Set<List<Integer>>> mockUncovered = new HashMap<>();
+    Set<List<Integer>> uncoveredPathsA;
+    Set<List<Integer>> uncoveredPathsB;
+    List<Integer> checkAUncovered;
+    List<Integer> checkBUncovered;
     Map<String, Tuple<Integer, Integer>> mockCoverageMeta = new HashMap<>();
 
     PathCoverage mockInput;
@@ -61,9 +60,9 @@ public class PathsController {
         checkBUncovered.add(25);
         checkBUncovered.add(26);
 
-        uncoveredPathsA = new ArrayList<>();
+        uncoveredPathsA = new HashSet<>();
         uncoveredPathsA.add(checkAUncovered);
-        uncoveredPathsB = new ArrayList<>();
+        uncoveredPathsB = new HashSet<>();
         uncoveredPathsB.add(checkBUncovered);
 
         mockUncovered.put("checkA", uncoveredPathsA);

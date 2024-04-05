@@ -44,7 +44,7 @@ class TestExecutorListener implements TestExecutionListener
         Map<String, String> keyValPairs = entry.getKeyValuePairs();
         if (keyValPairs != null && keyValPairs.containsKey("coverage"))
         {
-            System.out.println("[TestExecutorListener] Found coverage data: " + keyValPairs.get("coverage"));
+            System.out.println("[TestExecutorListener] Found coverage data");
 
             // deserialize the coverage data
             try
