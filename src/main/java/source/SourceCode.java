@@ -11,6 +11,8 @@ public class SourceCode {
         int w = 14;
         int y = number;
         int p = a;
+        y = 5;
+        y = 10 + 2;
         y = y + p;//:(
         z = y - a;//:(
         if(y > z) {

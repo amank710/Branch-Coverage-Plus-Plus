@@ -1,19 +1,16 @@
 package parser;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.microsoft.z3.*;
 import common.functions.FunctionContext;
 import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
-
-import com.github.javaparser.ast.expr.BinaryExpr;
 
 import z3.Z3Solver;
 
@@ -31,6 +28,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     private Node previousNode;
     private Expression previousCondition;
     private Z3Solver z3Solver;
+    // Initialize Z3 context
+    Context ctx = new Context();
+    // Map for keeping track of parameters for Symbolic Execution
+    private static Map<String, Expr> parameterSymbols = new HashMap<>();
 
     private Path path;
     private FunctionContext functionCtx;
@@ -195,12 +196,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             System.out.println("192");// correct
             System.out.println(currentPath);
             outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize -1)));
-            System.out.println("Here 1"+outerConditionalPath);
+//            System.out.println("Here 1"+outerConditionalPath);
         } else {
             pathList.add(parentPath);
             outerConditionalPath.push(new ArrayList<>(parentPath)); // different
             System.out.println(pathList.get(pathListSize -1));
-            System.out.println("Here 2"+outerConditionalPath);
+//            System.out.println("Here 2"+outerConditionalPath);
         }
         outerConditional.put(key, pathList);
     }
@@ -249,7 +250,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            System.out.println("Step 7 Else Condition");
+//            System.out.println("Step 7 Else Condition");
             System.out.println(outerConditionalPath); // [[41]] vs [[17, 43, 41]]
             System.out.println( outerConditionalPath.pop());
             Expression elseCondition = null;
@@ -291,6 +292,14 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         n.getVariables().forEach(var -> {
             ArrayList<Integer> lines = new ArrayList<Integer>();
             String variableName = var.getNameAsString();
+
+            Expr rhsExpr = null;
+            if (var.getInitializer().isPresent()) {
+                // Evaluate the expression and update the map
+                rhsExpr = evaluateExpression(var.getInitializer().get(), parameterSymbols, this.ctx);
+                parameterSymbols.put(variableName, rhsExpr);
+            }
+
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
             processAssignStaticValue(variableName, var.getInitializer().get());
@@ -303,7 +312,15 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
         String valueName = n.getValue().toString();
-//        System.out.println(variableName + n.getValue().toString());
+
+        Expr rhsExpr = convertToZ3Expr(n.getValue(), ctx, parameterSymbols); // Implement this method
+
+        // Update the symbolic state with the new expression
+//        parameterSymbols.put(variableName, rhsExpr);
+
+        updateSymbolMapWithAssignment(n, parameterSymbols, ctx);
+
+        System.out.println("!!!!!!" + variableName + n.getValue().toString());
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
         lines.add(line);
         Set<Integer> valLineNumbers = this.assignValLineNumbers(lines, valueName);
@@ -314,11 +331,74 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         previousNode = processNode(variableName, lines, previousNode);
     }
 
+    private void updateSymbolMapWithAssignment(AssignExpr assignExpr, Map<String, Expr> symbolMap, Context ctx) {
+        String targetVar = assignExpr.getTarget().toString();
+        Expr evaluatedExpr = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
+        symbolMap.put(targetVar, evaluatedExpr); // Update the map with the new or updated symbolic expression
+    }
+
+    private Expr evaluateExpression(Expression expr, Map<String, Expr> symbolMap, Context ctx) {
+        if (expr instanceof IntegerLiteralExpr) {
+            int value = ((IntegerLiteralExpr) expr).asInt();
+            return ctx.mkInt(value); // Direct static value
+        } else if (expr instanceof NameExpr) {
+            String varName = ((NameExpr) expr).getNameAsString();
+            return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Existing symbol or new symbol for uninitialized variable
+        } else if (expr instanceof BinaryExpr) {
+            BinaryExpr binaryExpr = (BinaryExpr) expr;
+            Expr left = evaluateExpression(binaryExpr.getLeft(), symbolMap, ctx);
+            Expr right = evaluateExpression(binaryExpr.getRight(), symbolMap, ctx);
+            switch (binaryExpr.getOperator()) {
+                case PLUS:
+                    return ctx.mkAdd(new Expr[]{left, right});
+                case MINUS:
+                    return ctx.mkSub(new Expr[]{left, right});
+                // Handle other operators as needed
+            }
+        }
+        // Extend to handle more expression types as needed
+        return null; // Placeholder to satisfy return requirement
+    }
+
+    // Convert JavaParser Expression to Z3 Expr, handling addition and subtraction
+    private Expr convertToZ3Expr(com.github.javaparser.ast.expr.Expression expression, Context ctx, Map<String, Expr> symbolMap) {
+        if (expression instanceof BinaryExpr) {
+            BinaryExpr binExpr = (BinaryExpr) expression;
+            Expr left = convertToZ3Expr(binExpr.getLeft(), ctx, symbolMap);
+            Expr right = convertToZ3Expr(binExpr.getRight(), ctx, symbolMap);
+
+            switch (binExpr.getOperator()) {
+                case PLUS:
+                    return ctx.mkAdd(new IntExpr[]{(IntExpr) left, (IntExpr) right});
+                case MINUS:
+                    return ctx.mkSub(new IntExpr[]{(IntExpr) left, (IntExpr) right});
+                // Handle other operators as needed
+            }
+        } else if (expression.isNameExpr()) {
+            // Variable reference
+            String varName = expression.asNameExpr().getNameAsString();
+            return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Assume integer for simplicity
+        } else if (expression.isIntegerLiteralExpr()) {
+            // Concrete integer value
+            int value = expression.asIntegerLiteralExpr().asInt();
+            return ctx.mkInt(value);
+        }
+        // Extend to handle other expression types as needed
+        throw new UnsupportedOperationException("Unsupported expression type: " + expression.getClass());
+    }
+
     @Override
     public void visit(MethodDeclaration n, Node arg) {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         n.getParameters().forEach(parameter -> {
             String variableName = parameter.getNameAsString();
+            System.out.println("!!!!!!!!!" + variableName);
+            Sort paramSort = getTypeSort(parameter.getType(), ctx);
+            // Create a Z3 symbol for the parameter name
+            Symbol paramSymbol = ctx.mkSymbol(variableName);
+            // Create a Z3 constant (symbolic variable) for the parameter
+            Expr paramExpr = ctx.mkConst(paramSymbol, paramSort);
+            parameterSymbols.put(variableName, paramExpr);
             int line = n.getBegin().get().line;
             lines.add(line);
             previousNode = processNode(variableName, lines, previousNode);
@@ -326,8 +406,22 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         n.getBody().ifPresent(body -> body.accept(this, arg));
     }
 
+    private static Sort getTypeSort(com.github.javaparser.ast.type.Type type, Context ctx) {
+        // Example: Determine the sort based on the simple name of the type
+        String typeName = type.toString();
+        switch (typeName) {
+            case "int":
+                return ctx.getIntSort();
+            case "boolean":
+                return ctx.getBoolSort();
+            // Add more cases for other types
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + typeName);
+        }
+    }
+
     private void processAssignStaticValue(String variableName, Expression value) {
-        System.out.println(value);
+//        System.out.println(value);
 //        this.z3Solver.setCondition(previousCondition);
 //        boolean thenCondition = this.z3Solver.solve();
 //        boolean else
