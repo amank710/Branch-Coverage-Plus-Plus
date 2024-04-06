@@ -382,6 +382,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         if (expr instanceof IntegerLiteralExpr) {
             int value = ((IntegerLiteralExpr) expr).asInt();
             return ctx.mkInt(value); // Direct static value
+        } else if (expr instanceof BooleanLiteralExpr) {
+            boolean value = ((BooleanLiteralExpr) expr).getValue();
+            return value ? ctx.mkTrue() : ctx.mkFalse(); // Direct static value
         } else if (expr instanceof NameExpr) {
             String varName = ((NameExpr) expr).getNameAsString();
             return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Existing symbol or new symbol for uninitialized variable
@@ -414,6 +417,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     return ctx.mkLe((ArithExpr) left, (ArithExpr) right);
                 case NOT_EQUALS:
                     return ctx.mkNot(ctx.mkEq(left, right));
+                case AND:
+                    return ctx.mkAnd((BoolExpr) left, (BoolExpr) right);
+                case OR:
+                    return ctx.mkOr((BoolExpr) left, (BoolExpr) right);
+
 
             }
         }
@@ -444,7 +452,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             // Concrete integer value
             int value = expression.asIntegerLiteralExpr().asInt();
             return ctx.mkInt(value);
+        } else if (expression.isBooleanLiteralExpr()) {
+            // Concrete boolean value
+            boolean value = expression.asBooleanLiteralExpr().getValue();
+            return value ? ctx.mkTrue() : ctx.mkFalse();
         }
+        System.out.println("Unsupported expression type: " + expression.getClass());
         // Extend to handle other expression types as needed
         throw new UnsupportedOperationException("Unsupported expression type: " + expression.getClass());
     }

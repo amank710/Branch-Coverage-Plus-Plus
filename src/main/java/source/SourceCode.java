@@ -4,14 +4,17 @@ import runtime.Instrumentable;
 
 public class SourceCode {
     @Instrumentable
-    public String foo(int number, int a) {
+    public String foo(int number, int a, boolean bool) {
         int x = 42;
         int z = 10;
         int w = 10;
         int y = number;
         int p = a;
+        boolean b2 = bool;
+        boolean aa = true;
+        b2 = aa;
 
-        if(z == y) {
+        if(bool || false) {
             y = 5;
             z = number;
         } else {
