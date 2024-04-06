@@ -79,6 +79,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             {
                 path = path.substring(1);
             }
+            path.replace("%20", "\\\\");
             System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
             VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java");
