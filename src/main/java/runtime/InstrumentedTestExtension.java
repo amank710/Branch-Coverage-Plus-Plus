@@ -74,9 +74,14 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
         for (Class<?> instClass : instClasses)
         {
             URL location = instClass.getProtectionDomain().getCodeSource().getLocation();
-            System.out.println("[InstrumentedTestExtension]: Found source code at " + location);
+            String path = location.getPath();
+            if (System.getProperty("os.name").contains("Windows"))
+            {
+                path = path.substring(1);
+            }
+            System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
-            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(location.getPath(), instClass.getSimpleName() + ".java");
+            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getSimpleName() + ".java");
             variableMapBuilder.build();
 
             processStaticAnalysis(variableMapBuilder.getPath(), instClass.getName(), methodBounds);
