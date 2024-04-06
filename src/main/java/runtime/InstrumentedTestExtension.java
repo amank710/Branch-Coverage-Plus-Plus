@@ -2,13 +2,18 @@ package runtime;
 
 import common.functions.FunctionContext;
 import common.functions.Path;
+import common.Constants;
+import common.PathCoverage;
 import common.util.Tuple;
 import graph.Node;
 import parser.VariableMapBuilder;
 
 import com.sun.jdi.AbsentInformationException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,11 +45,10 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
 
         Map<String, Set<String>> instrumentedMethodMapping = new HashMap<>();
         for (Class<?> instClass : instClasses) {
-            String path_home = Optional.ofNullable(System.getProperty("PATH_COVERAGE_SOURCE_HOME")).orElseThrow(() -> new IllegalArgumentException("Please set the PATH_COVERAGE_SOURCE_HOME environment variable"));
-            String local_source_path = instClass.getPackage().getName().replaceAll("\\.", "/");
-            System.out.println("[InstrumentedTestExtension]: Trying to find source code at " + path_home + "/" + local_source_path + "/" + instClass.getSimpleName() + ".java");
+            URL location = instClass.getProtectionDomain().getCodeSource().getLocation();
+            System.out.println("[InstrumentedTestExtension]: Found source code at " + location);
 
-            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path_home + "/" + local_source_path, instClass.getSimpleName() + ".java");
+            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(location.getPath(), instClass.getSimpleName() + ".java");
             Node root = variableMapBuilder.build();
 
             Set<Method> instMethods = getInstrumentable(instClass);
@@ -92,12 +96,19 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
     {
         System.out.println("[InstrumentedTestExtension]: Test suite completed");
         System.out.println("[InstrumentedTestExtension]: Instrumented method paths: " + instrumentedMethodPaths);
-        printCoverage();
+
+        PathCoverage pathCoverage = calcPathCoverage();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(pathCoverage);
+        oos.flush();
+        oos.close();
+        context.publishReportEntry(Constants.COVERAGE_KEY, baos.toString("ISO-8859-1"));
     }
 
-    private void printCoverage()
+    private PathCoverage calcPathCoverage()
     {
-        System.out.println("[InstrumentedTestExtension]: Printing coverage...");
+       return new PathCoverage(0.5, new HashMap<>(), new HashMap<>());
     }
 
     static <T> List<Class<?>> getInstrumented(Class<T> target)

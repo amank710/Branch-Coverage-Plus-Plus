@@ -20,6 +20,35 @@
             <artifactId>z3-turnkey</artifactId>
             <version>4.12.5</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.10.2</version>
+        </dependency>
+         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-autoconfigure -->
+         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>3.2.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>6.1.5</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>6.1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>3.2.4</version>
+        </dependency>
     </dependencies>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -27,7 +56,7 @@
     </properties>
     <build>
         <plugins>
-        <!-- Other plugins ... -->
+            <!-- Other plugins ... -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -35,6 +64,16 @@
                     <argLine>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 -Djdk.attach.allowAttachSelf=true -Xint</argLine>
                     <systemPropertyVariables>
                         <PATH_COVERAGE_SOURCE_HOME>${project.basedir}/src/main/java</PATH_COVERAGE_SOURCE_HOME>
+                        <SANDBOX_HOME>${project.basedir}/resources/sandbox</SANDBOX_HOME>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <SANDBOX_HOME>${project.basedir}/resources/sandbox</SANDBOX_HOME>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
