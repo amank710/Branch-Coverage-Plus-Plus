@@ -374,8 +374,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
         String valueName = n.getValue().toString();
-
-        Expr rhsExpr = convertToZ3Expr(n.getValue(), ctx, parameterSymbols); // Implement this method
+        String op = n.getOperator().toString();
 
 
         updateSymbolMapWithAssignment(n, parameterSymbols, ctx);
@@ -395,8 +394,24 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
 
         String targetVar = assignExpr.getTarget().toString();
-        Expr evaluatedExpr = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
-        symbolMap.put(targetVar, evaluatedExpr); // Update the map with the new or updated symbolic expression
+        Expr currentExpr = symbolMap.getOrDefault(targetVar, null);
+
+        switch (assignExpr.getOperator()) {
+            case ASSIGN:
+                Expr evaluatedExpr = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
+                symbolMap.put(targetVar, evaluatedExpr); // Update the map with the new or updated symbolic expression
+                break;
+            case PLUS:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // Fallback if not in map
+                Expr additionResult = ctx.mkAdd(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, additionResult);
+                break;
+            case MINUS:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // Fallback if not in map
+                Expr subtractionResult = ctx.mkSub(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, subtractionResult);
+                break;
+        }
 
 
     }
@@ -440,6 +455,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     return ctx.mkAdd(new Expr[]{left, right});
                 case MINUS:
                     return ctx.mkSub(new Expr[]{left, right});
+//                case DIVIDE:
+//                    return ctx.mkDiv(new)
                 // Handle other operators as needed
                 case EQUALS:
                     return ctx.mkEq(left, right);
@@ -464,38 +481,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         System.out.println("Unsupported expression type: " + expr.getClass());
         // Extend to handle more expression types as needed
         return null; // Placeholder to satisfy return requirement
-    }
-
-    // Convert JavaParser Expression to Z3 Expr, handling addition and subtraction
-    private Expr convertToZ3Expr(com.github.javaparser.ast.expr.Expression expression, Context ctx, Map<String, Expr> symbolMap) {
-        if (expression instanceof BinaryExpr) {
-            BinaryExpr binExpr = (BinaryExpr) expression;
-            Expr left = convertToZ3Expr(binExpr.getLeft(), ctx, symbolMap);
-            Expr right = convertToZ3Expr(binExpr.getRight(), ctx, symbolMap);
-
-            switch (binExpr.getOperator()) {
-                case PLUS:
-                    return ctx.mkAdd(new IntExpr[]{(IntExpr) left, (IntExpr) right});
-                case MINUS:
-                    return ctx.mkSub(new IntExpr[]{(IntExpr) left, (IntExpr) right});
-                // Handle other operators as needed
-            }
-        } else if (expression.isNameExpr()) {
-            // Variable reference
-            String varName = expression.asNameExpr().getNameAsString();
-            return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Assume integer for simplicity
-        } else if (expression.isIntegerLiteralExpr()) {
-            // Concrete integer value
-            int value = expression.asIntegerLiteralExpr().asInt();
-            return ctx.mkInt(value);
-        } else if (expression.isBooleanLiteralExpr()) {
-            // Concrete boolean value
-            boolean value = expression.asBooleanLiteralExpr().getValue();
-            return value ? ctx.mkTrue() : ctx.mkFalse();
-        }
-        System.out.println("Unsupported expression type: " + expression.getClass());
-        // Extend to handle other expression types as needed
-        throw new UnsupportedOperationException("Unsupported expression type: " + expression.getClass());
     }
 
     @Override

@@ -10,17 +10,15 @@ public class SourceCode {
         int w = 10;
         int y = number;
         int p = a;
-        int xxyyzz = trial();
-        xxyyzz = xxyyzz + 1;
+        z += 6 - y;
+        w -= z;
         boolean b2 = bool;
         boolean aa = true;
         b2 = aa;
 
-        if(bool) {
+        if(z > w) {
             y = 5;
             z = number;
-        } else if (bool) {
-            y = 10;
         } else {
             y = 30;
         }
