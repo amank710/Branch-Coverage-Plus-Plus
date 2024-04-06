@@ -2,6 +2,7 @@ package z3;
 
 import com.github.javaparser.ast.expr.*;
 import com.microsoft.z3.*;
+import java.util.Stack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,10 +10,16 @@ import java.util.Map;
 public class Z3Solver {
 
     private Expression condition;
+
+    private Expression currentBlockCondition;
     private Map<String, Expression> staticVariableValues;
+
+    private Stack<Boolean> stack;
+
 
     public Z3Solver() {
         this.staticVariableValues = new HashMap<>();
+        this.stack = new Stack<>();
     }
     public Z3Solver(Expression condition, Map<String, Expression> staticVariableValues) {
         this.condition = condition;
@@ -32,6 +39,8 @@ public class Z3Solver {
             Solver solver = ctx.mkSolver();
             solver.add(conditionExpr);
 
+
+            this.stack.push(solver.check() == Status.SATISFIABLE);
             if (solver.check() == Status.SATISFIABLE) {
                 return true;
             }
@@ -42,6 +51,9 @@ public class Z3Solver {
     }
 
     public BoolExpr toZ3Expr(Context ctx) throws Exception {
+        boolean currentCondition = this.peekCondition();
+//        System.out.println("previous condition result: " + currentCondition);
+//        System.out.println("current condition: " + this.condition);
         return parseExpression(this.condition, ctx);
     }
 
@@ -209,5 +221,22 @@ public class Z3Solver {
 
     public void setCondition(Expression condition) {
         this.condition = condition;
+//        System.out.println("condition set: " + this.condition);
     }
+
+    public void pushCondition(Expression condition) {
+        setCondition(condition);
+    }
+
+    public boolean popCondition() {
+        return this.stack.pop();
+    }
+
+    public boolean peekCondition() {
+        if(this.stack.isEmpty()) {
+            return true;
+        }
+        return this.stack.peek();
+    }
+
 }

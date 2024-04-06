@@ -13,68 +13,73 @@ class SourceCodeZ3Playground {
 //        output = a;
         int abc = 5;
 
-//        if (ff > 2) { // Satisfiable
+        if (ff > 2) { // Satisfiable
+            System.out.println("print");
 //            System.out.println("print");
-//            if (flag)  { // Satisfiable
-////                output = true;
-//                if (ff > 5) {
-////                    output = false;
-//                    if (ff > 7) {
-//                        output = false;
-//                    } else {
-//                        output = false;
-//                    }
-//                } else {
-//                    if (ff < 4) {
-//                        if (ff == 3) { // always true
-//                            output = false;
-//                        } else {
-//                            output = false; //ignore
-//                        }
-//                        output = false;
-//                    } else {
-//                        output = false;
-//                    }
-//                    return output;
-////                    output = true;
-//                }
-//            } else {
-//                output = false;
-//            }
-//            output = true;
-//        } else {
-//            output = false;
-//            if (ff < 1) {
-//                output = false;
-//            } else {
-//                output = false;
-//                if (ff == 2) {
-//                    output = false;
-//                } else {
-//                    output = true;
-//                }
-//            }
-//        }
-        //[19,17, 23][21,17, 23]
+            if (flag)  { // Satisfiable
+                flag = false;
+                if (ff > 5) {
+                    output = false;
+                    if (ff > 7) {
+                        output = false;
+                    } else {
+                        output = false;
+                        return output;
+                    }
+                  output= false;
+                } else {
+                    output = true;
+                    if (ff < 4) {
+                        if (ff == 3) { // always true
+                            output = false;
+                            return output;
+                        } else {
+                            output = false; //ignore
+                        }
+                        output = false;
+                    } else {
+                        output = true;
+                    }
+                    output = true;
+                }
+            } else {
+                output = false;
+            }
+            output = true;
+        } else {
+            output = false;
+            if (ff < 1) {
+                output = false;
+            } else {
+                output = false;
+                if (ff == 2) {
+                    output = false;
+                } else {
+                    output = true;
+                }
+            }
+        }
+
 
 //
-        if (output) {
-            output = false;
-            // uncomment to get empty stack exception
+//        if (output) {
+//            output = false; ///output updated here, changes the static varaible
+//            // uncomment to get empty stack exception
 //            if (ff == 5) {
 //                output = false;
 //            } else {
 //                output = true;
 //            }
-        } else {
-            output = true;
-        }
-
-        if (abc == 5) { // Unsatisfiable
-            output = a;
-        } else {
-            output = true;
-        }
+//            output = false;
+//        } else {
+//            output = true;
+//        }
+//
+//        if (abc == 5) { // Unsatisfiable
+//            output = a;
+//        } else {
+//            output = true;
+//        }
 //
 //        if (abc == abc && 4 > 5) { // Unsatisfiable
 //            output = a;
