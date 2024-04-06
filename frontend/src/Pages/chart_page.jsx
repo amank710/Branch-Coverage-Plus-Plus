@@ -8,9 +8,28 @@ import selectors from "../State/selectors";
 
 const ChartPage = () => {
     const pathCovObject = useSelector(selectors.selectPathCoverage)["pathCoverage"];
-    const pathCovScore = pathCovObject.pathCoverageScore;
+    const pathCovScore = pathCovObject.pathCoverageMetadata;
     const datasets = useSelector(selectors.selectChart)["datasets"];
     const labels = useSelector(selectors.selectChart)["labels"];
+
+    const calcOverallScore = (pathCovObj) => {
+        let counter = 0;
+        let totalCov = 0;
+        for (const method in pathCovObj) {
+            // this is assuming that the tuple is (paths covered, total paths)
+            totalCov += (pathCovObj[method][0] / pathCovObj[method][1]);
+            counter++;
+        }
+        totalCov = totalCov / counter;
+        return totalCov.toString();
+    }
+
+
+    // Assuming that the list/tuple is (# of covered paths, # of total paths)
+    let pathCovScoreVal = "";
+    if (typeof pathCovScore !== 'string' && !(pathCovScore instanceof String)) {
+        pathCovScoreVal = calcOverallScore(pathCovScore);
+    }
 
     // data passed to the chart
     const data = {
@@ -58,7 +77,7 @@ const ChartPage = () => {
                 <Text
                     c="dimmed"
                     fz="md"
-                >Your path coverage score: {pathCovScore}</Text>
+                >Your path coverage score: {pathCovScoreVal}</Text>
             </div>
             <div className="chart-container">
                 <Bar

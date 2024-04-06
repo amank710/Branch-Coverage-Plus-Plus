@@ -18,13 +18,18 @@ const HomePage = () => {
         formData.append('file', event);
         const url = "http://localhost:8080/api/paths";
 
-        await fetch(url, {
+        const response = await fetch(url, {
             method: "PUT",
             mode: "cors",
             body: formData
         })
-            .then(response => console.log(response))
+            .then(response => {
+                console.log(response);
+                return response;
+            })
             .catch(err => console.log(err));
+
+        return !(response === undefined || response === null);
     }
 
     const handleFileRead = (content, fileType) => {
@@ -47,19 +52,24 @@ const HomePage = () => {
     }
 
     const handleFileUpload = async (event, fileType) => {
-        const reader = new FileReader();
-        reader.onloadend = (event) => {
-            handleFileRead(event.target.result, fileType);
-        };
-        reader.readAsText(event);
+        if (event === null || fileType === null) {
+            console.log("Error with file selection");
+            return;
+        }
 
-        await sendFiles(event);
+        const responseIsGood = await sendFiles(event);
+        if (responseIsGood) {
+            const reader = new FileReader();
+            reader.onloadend = (event) => {
+                handleFileRead(event.target.result, fileType);
+            };
+            reader.readAsText(event);
+        }
     }
 
     return (
         <div className="main-container">
             <FileInput
-                clearable
                 label={"Code File Input"}
                 labelProps={{className: 'custom-label'}}
                 radius={"sm"}
@@ -76,7 +86,6 @@ const HomePage = () => {
             </div>
             <div className="input-container">
                 <FileInput
-                    clearable
                     label={"Test File Input"}
                     labelProps={{className: 'custom-label'}}
                     radius={"sm"}

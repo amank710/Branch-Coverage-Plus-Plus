@@ -25,7 +25,7 @@ public class PathCoverage implements Serializable
     }
 
 
-    public Map<String, List<Integer>> getPathMetadata()
+    public Map<String, List<Integer>> getPathCoverageMetadata()
     {
         return pathCoverageMetadata;
     }

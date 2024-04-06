@@ -32,7 +32,6 @@ const FetchButton = () => {
     ];
 
     const getChartInput = async () => {
-        console.log("BUTTON HIT");
         await getData();
     }
 
@@ -45,7 +44,10 @@ const FetchButton = () => {
             }
         })
             .then(response => response.json())
-            .then(data => setPathCovValues(data))
+            .then(data => {
+                console.log(data);
+                setPathCovValues(data);
+            })
             .catch(err => console.log(err));
     }
 
