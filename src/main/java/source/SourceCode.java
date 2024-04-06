@@ -14,12 +14,24 @@ public class SourceCode {
         boolean aa = true;
         b2 = aa;
 
-        if(bool || false) {
+        if(bool) {
             y = 5;
             z = number;
+        } else if (bool) {
+            y = 10;
         } else {
-            w = 200;
+            y = 30;
         }
+
+
+
+//        Else: {
+//            if (aa) {
+//                y = 10;
+//            } else {
+//                y = 20;
+//            }
+//        }
 //
 //        if (y > 0) {
 //            y = z;

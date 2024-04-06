@@ -3,6 +3,7 @@ package parser;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
@@ -115,12 +116,14 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //            this.previousCondition = elseCondition;
             Statement elseStmt = n.getElseStmt().get();
             StatementVisitor statementVisitor = new StatementVisitor();
-            elseStmt.accept(statementVisitor, arg);
+            if(elseStmt.isIfStmt()) {
+                elseStmt.accept(this, arg);
+            } else {
+                elseStmt.accept(statementVisitor, arg);
+            }
             returnLines.add(statementVisitor.getReturnLine());
             StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
             this.previousNode = elseNode;
-
-
 
             int elseBeginLine = n.getElseStmt().get().getBegin().get().line;
             int elseEndLine = n.getElseStmt().get().getEnd().get().line;
@@ -135,8 +138,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 statementVisitor.getPath().forEach(line -> path.add(line));
                 ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
 //                System.out.println("If OuterConditional"+path);//[17, 43] vs [17, 43]
+
                 outerConditionalPath.push(new ArrayList<>(path));
                 pathList.add(path);
+
 
                 pathMap.put(ifLines, pathList);
                 paths.push(pathMap); // not executed after first
@@ -145,7 +150,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             }
 
             //TODO: This is trying to get the line numbers of the else statement
-            elseStmt.accept(this, arg);
+            if(!elseStmt.isIfStmt()) {
+
+                elseStmt.accept(this, arg);
+            }
+
 
             conditionalNode.setElseNode(elseNode);
             // Merge 'then' and 'else' states.
@@ -158,26 +167,30 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional = paths.pop();
         ArrayList<Integer> key = new ArrayList<>(outerConditional.keySet()).get(0);
 
+        System.out.println("Key:" + key.get(0) + " vs " + key.get(1));
+        System.out.println("Key:" + beginLine + " vs " + endLine);
+        System.out.println(key.get(0) < beginLine && key.get(1) > endLine);
 
-        // Common logic for both if and else paths.
         if (key.get(0) < beginLine && key.get(1) > endLine) {
             ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
             int pathListSize = pathList.size();
             System.out.println("139" + pathList);
-//
-//            System.out.println(pathType + " key" + key);
-//            System.out.println(pathType + " value" + pathList);
 
             ArrayList<Integer> parentPath;
             if (!outerConditionalPath.isEmpty()) {
                 System.out.println("sss" + outerConditionalPath);
                 System.out.println(pathType);
                 parentPath = new ArrayList<>(pathType.equals("else") ? outerConditionalPath.pop() : outerConditionalPath.peek());
+                System.out.println("178" + outerConditionalPath);
             } else {
                 parentPath = new ArrayList<>();
             }
             System.out.println("150" + statementVisitor.getPath());
-            parentPath.addAll(statementVisitor.getPath());
+            for (int i = 0; i < statementVisitor.getPath().size(); i++) {
+                if(!parentPath.contains(statementVisitor.getPath().get(i))) {
+                    parentPath.add(statementVisitor.getPath().get(i));
+                }
+            }
 //                System.out.println("statementVisitor.getPath()" + statementVisitor.getPath());
             System.out.println("149" + pathList);//[46, 19, 21, 28, 23]
 
@@ -185,7 +198,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //            System.out.println("Current Path " + pathType + currentPath);
             System.out.println("179" + currentPath);
             System.out.println("179" + statementVisitor.getPath());
-            currentPath.addAll(statementVisitor.getPath());
+            for (int i = 0; i < statementVisitor.getPath().size(); i++) {
+                if(!currentPath.contains(statementVisitor.getPath().get(i))) {
+                    currentPath.add(statementVisitor.getPath().get(i));
+                }
+            }
+           // currentPath.addAll(statementVisitor.getPath());
             System.out.println("Current Path " + pathType + currentPath);
             System.out.println("Parent Path " + pathType + parentPath);
             boolean pathsMatch = isPathMatch(parentPath, currentPath, true); // false
@@ -207,28 +225,26 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             lines.add(beginLine);
             lines.add(endLine);
             ArrayList<Integer> path = new ArrayList<>();
+            // Common logic for both if and else paths.
+            System.out.println("Key" + path);
+            System.out.println(statementVisitor.getPath());
             statementVisitor.getPath().forEach(line -> path.add(line));
             ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
             pathList.add(path);
             outerConditionalPath.push(new ArrayList<>(path)); // 45 vs 45
             newOuterConditionalMap.put(lines, pathList);
         }
-
         paths.push(outerConditional);
-        if (!newOuterConditionalMap.isEmpty()) {
+        //check the empty path if so ignore it
+        if (!newOuterConditionalMap.isEmpty() &&!newOuterConditionalMap.values().toArray()[0].toString().equals("[[]]")){
             paths.push(newOuterConditionalMap);
         }
-//
-//        System.out.println("Path" + paths);
-//        System.out.println("OuterConditional" + outerConditionalPath);
     }
 
     private void updateOuterConditional(boolean pathesMatch, ArrayList<ArrayList<Integer>> pathList, int pathListSize, ArrayList<Integer> currentPath, ArrayList<Integer> parentPath, Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional, ArrayList<Integer> key) {
         if (pathesMatch) {
             pathList.remove(pathListSize -1);
             pathList.add(pathListSize -1, currentPath);
-            System.out.println("Here 1"+pathList);
-            System.out.println(currentPath);
             outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize -1)));
         }  else {
             pathList.add(parentPath);
@@ -255,6 +271,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(IfStmt n, Node arg) {
         Expression originalCondition =previousCondition;
         Expression thenCondition = n.getCondition();
+        System.out.println("test");
+//        System.out.println(n.getThenStmt());
+//        System.out.println(n.getElseStmt().get().isIfStmt());
 //        if (previousCondition == null) {
 //            thenCondition = n.getCondition();
 //        } else {
@@ -296,10 +315,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            System.out.println("outerConditionalPath" + outerConditionalPath); // [[41]] vs [[17, 43, 41]]
             if(!outerConditionalPath.isEmpty()) {
                 outerConditionalPath.pop();
             }
+            System.out.println("outerConditionalPath" + paths   );
 //            System.out.println( outerConditionalPath.pop());
 
             elseHelper(n, arg, elseConditionResult, conditionalNode, dependencies, afterIfNode);
@@ -373,9 +392,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     }
 
     private void updateSymbolMapWithAssignment(AssignExpr assignExpr, Map<String, Expr> symbolMap, Context ctx) {
+
+
         String targetVar = assignExpr.getTarget().toString();
         Expr evaluatedExpr = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
         symbolMap.put(targetVar, evaluatedExpr); // Update the map with the new or updated symbolic expression
+
+
     }
 
     private Expr evaluateExpression(Expression expr, Map<String, Expr> symbolMap, Context ctx) {
