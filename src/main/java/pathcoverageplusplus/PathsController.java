@@ -9,9 +9,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import runtime.TestExecutor;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
+
+import static common.util.Util.parseClassName;
 
 @RestController
 @RequestMapping("/api/paths")
@@ -87,9 +92,16 @@ public class PathsController {
             try {
                 // File Putting
                 String directory = Optional.ofNullable(System.getProperty("SANDBOX_HOME")).orElseThrow(() -> new IllegalArgumentException("SANDBOX_HOME not set"));
+                String subdirectory = parseSubdirectory(file.getInputStream());
+                prepareFolders(directory, subdirectory);
                 String filename = file.getOriginalFilename();
-                System.out.println(directory + filename);
-                file.transferTo(new File(directory + filename));
+                String fullPath = directory + "/" + subdirectory + "/" + filename;
+                System.out.println("[PathsController] Transferring file to " + fullPath);
+                File newFile = new File(fullPath);
+                if (newFile.exists()) {
+                    newFile.delete();
+                }
+                file.transferTo(newFile);
 
                 // setting filenames
                 assert filename != null;
@@ -101,7 +113,9 @@ public class PathsController {
 
                 // determining if we need to execute stuff
                 if (!testfilename.isEmpty() && !codefilename.isEmpty()) {
-                    handleExecutor();
+                    handleExecutor(directory, new Tuple<String, String>(
+                        subdirectory + codefilename,
+                        subdirectory + testfilename));
                 }
 
                 // String classname = filename.substring(0, filename.indexOf("."));
@@ -115,20 +129,39 @@ public class PathsController {
         }
     }
 
-    private void handleExecutor() {
-        String[] paths = new String[] {codefilename, testfilename};
+    private void handleExecutor(String root, Tuple<String, String> localSources) {
+        String[] paths = {localSources.first(), localSources.second()};
+        String testClassName = parseClassName(localSources.second());
         System.out.println(paths[0]);
         try {
-            String root = Optional.ofNullable(System.getProperty("SANDBOX_HOME")).orElseThrow(() -> new IllegalArgumentException("SANDBOX_HOME not set"));
-            String classname = testfilename.substring(0, testfilename.indexOf("."));
             RuntimeClassLoader classLoader = new RuntimeClassLoader(root, paths);
             Map<String, Class<?>> classes = classLoader.loadClasses();
-            TestExecutor testExecutor = new TestExecutor(classes.get(classname));
+            TestExecutor testExecutor = new TestExecutor(classes.get(testClassName));
             testExecutor.runTests();
             PathCoverage pathCoverage = testExecutor.getPathCoverage();
             System.out.println(pathCoverage.getPathCoverageMetadata());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private String parseSubdirectory(InputStream inputStream) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        String line = reader.readLine();
+
+        if (line.startsWith("package"))
+        {
+            return line.substring(8, line.length() - 1).trim().replace(".", "/") + "/";
+        }
+
+        return "";
+    }
+
+    private void prepareFolders(String directory, String subdirectory) {
+        System.out.println("[PathsController] Preparing " + directory + "/" + subdirectory);
+        File dir = new File(directory + "/" + subdirectory);
+        if (!dir.exists()) {
+            dir.mkdirs();
         }
     }
 }

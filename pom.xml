@@ -93,7 +93,7 @@
                     <argLine>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 -Djdk.attach.allowAttachSelf=true -Xint</argLine>
                     <systemPropertyVariables>
                         <PATH_COVERAGE_SOURCE_HOME>${project.basedir}/src/main/java</PATH_COVERAGE_SOURCE_HOME>
-                        <SANDBOX_HOME>${project.basedir}/resources/sandbox</SANDBOX_HOME>
+                        <SANDBOX_HOME>${project.basedir}/resources/sandbox_debug</SANDBOX_HOME>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

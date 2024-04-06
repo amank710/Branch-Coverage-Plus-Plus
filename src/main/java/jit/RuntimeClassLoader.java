@@ -1,17 +1,13 @@
 package jit;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import runtime.Instrumentable;
+import static common.util.Util.parseClassName;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.tools.ToolProvider;
 import javax.tools.JavaCompiler;
 
@@ -64,7 +60,7 @@ public class RuntimeClassLoader
         {
             try
             {
-                String className = localSource.replace(".java", "");
+                String className = parseClassName(localSource);
                 System.out.println("[ClassLoader] Loading class " + className);
                 classes.put(className, runtimeClassLoader.loadClass(className));
             }
