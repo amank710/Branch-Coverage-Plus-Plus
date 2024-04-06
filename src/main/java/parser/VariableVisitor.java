@@ -262,11 +262,20 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 this.previousNode.getState(), dependencies, n.getBegin().get().line, thenCondition
         );
         this.previousNode.setChild(conditionalNode);
-        this.z3Solver.setCondition(thenCondition);
-        boolean thenConditionResult = this.z3Solver.solve();
+        Expr thenExpr = evaluateExpression(thenCondition, parameterSymbols, ctx);
+        Solver solver = ctx.mkSolver();
+        solver.add((BoolExpr) thenExpr);
+//        this.z3Solver.setCondition(thenCondition);
+
+        boolean thenConditionResult = solver.check() == Status.SATISFIABLE;
+
         Expression elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-        this.z3Solver.setCondition(elseCondition);
-        boolean elseConditionResult = this.z3Solver.solve();
+        Expr elseExpr = evaluateExpression(elseCondition, parameterSymbols, ctx);
+        solver.reset();
+        solver.add((BoolExpr) elseExpr);
+//        this.z3Solver.setCondition(elseCondition);
+        boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
+
         thenHelper(n, arg, thenConditionResult, conditionalNode, dependencies);
 
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
@@ -276,15 +285,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-//            System.out.println("Step 7 Else Condition");
             System.out.println(outerConditionalPath); // [[41]] vs [[17, 43, 41]]
-            System.out.println( outerConditionalPath.pop());
-
-//            if(originalCondition == null) {
-//                elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-//            } else {
-//                elseCondition = new BinaryExpr(originalCondition, new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT), BinaryExpr.Operator.AND);
-//            }
+//            System.out.println( outerConditionalPath.pop());
 
             elseHelper(n, arg, elseConditionResult, conditionalNode, dependencies, afterIfNode);
         }
@@ -324,11 +326,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 // Evaluate the expression and update the map
                 rhsExpr = evaluateExpression(var.getInitializer().get(), parameterSymbols, this.ctx);
                 parameterSymbols.put(variableName, rhsExpr);
+                System.out.println("!!!!!!" + parameterSymbols);
             }
 
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
-            processAssignStaticValue(variableName, var.getInitializer().get());
+//            processAssignStaticValue(variableName, var.getInitializer().get());
             previousNode = processNode(variableName, lines, previousNode);
         });
     }
@@ -341,8 +344,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         Expr rhsExpr = convertToZ3Expr(n.getValue(), ctx, parameterSymbols); // Implement this method
 
-        // Update the symbolic state with the new expression
-//        parameterSymbols.put(variableName, rhsExpr);
 
         updateSymbolMapWithAssignment(n, parameterSymbols, ctx);
 
@@ -353,7 +354,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         if (!valLineNumbers.isEmpty()) {
             lines.addAll(valLineNumbers);
         }
-        processAssignStaticValue(variableName, n.getValue());
+//        processAssignStaticValue(variableName, n.getValue());
         previousNode = processNode(variableName, lines, previousNode);
     }
 
@@ -370,7 +371,14 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         } else if (expr instanceof NameExpr) {
             String varName = ((NameExpr) expr).getNameAsString();
             return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Existing symbol or new symbol for uninitialized variable
-        } else if (expr instanceof BinaryExpr) {
+        } else if(expr instanceof UnaryExpr) {
+            UnaryExpr unaryExpr = (UnaryExpr) expr;
+            Expr unary = evaluateExpression(unaryExpr.getExpression(), symbolMap, ctx);
+            switch (unaryExpr.getOperator()) {
+                case LOGICAL_COMPLEMENT:
+                    return ctx.mkNot((BoolExpr) unary);
+            }
+        }  else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr) expr;
             Expr left = evaluateExpression(binaryExpr.getLeft(), symbolMap, ctx);
             Expr right = evaluateExpression(binaryExpr.getRight(), symbolMap, ctx);
@@ -380,8 +388,22 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 case MINUS:
                     return ctx.mkSub(new Expr[]{left, right});
                 // Handle other operators as needed
+                case EQUALS:
+                    return ctx.mkEq(left, right);
+                case GREATER:
+                    return ctx.mkGt((ArithExpr) left, (ArithExpr) right);
+                case LESS:
+                    return ctx.mkLt((ArithExpr) left, (ArithExpr) right);
+                case GREATER_EQUALS:
+                    return ctx.mkGe((ArithExpr) left, (ArithExpr) right);
+                case LESS_EQUALS:
+                    return ctx.mkLe((ArithExpr) left, (ArithExpr) right);
+                case NOT_EQUALS:
+                    return ctx.mkNot(ctx.mkEq(left, right));
+
             }
         }
+        System.out.println("Unsupported expression type: " + expr.getClass());
         // Extend to handle more expression types as needed
         return null; // Placeholder to satisfy return requirement
     }
@@ -457,6 +479,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        }
         if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr() || value.isBinaryExpr()) {
             this.z3Solver.addStaticVariableValues(variableName, value);
+
 //            System.out.println(this.z3Solver.getStaticVariableValues());
         } else {
             // means the value is a variable
