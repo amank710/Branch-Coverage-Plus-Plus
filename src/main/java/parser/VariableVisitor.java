@@ -418,7 +418,20 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 case LOGICAL_COMPLEMENT:
                     return ctx.mkNot((BoolExpr) unary);
             }
-        }  else if (expr instanceof BinaryExpr) {
+        }  else if (expr instanceof MethodCallExpr) {
+            MethodCallExpr methodCall = (MethodCallExpr) expr;
+            String methodName = methodCall.getNameAsString();
+            // Generate a unique symbol for this function call
+            // For simplicity, using method name with a counter or UUID can be a starting point
+            String uniqueSymbolName = methodName + "_" + UUID.randomUUID().toString();
+            // Depending on the expected return type, create a new symbolic constant
+            // Here assuming an integer return type for simplicity
+            Expr newSymbol = ctx.mkIntConst(uniqueSymbolName);
+            // Optionally, you might want to store some additional metadata about the function call
+            // e.g., its arguments, to use later in your analysis or when refining your symbolic execution model
+            symbolMap.put(uniqueSymbolName, newSymbol);
+            return newSymbol;
+        } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr) expr;
             Expr left = evaluateExpression(binaryExpr.getLeft(), symbolMap, ctx);
             Expr right = evaluateExpression(binaryExpr.getRight(), symbolMap, ctx);

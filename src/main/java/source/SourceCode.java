@@ -10,6 +10,8 @@ public class SourceCode {
         int w = 10;
         int y = number;
         int p = a;
+        int xxyyzz = trial();
+        xxyyzz = xxyyzz + 1;
         boolean b2 = bool;
         boolean aa = true;
         b2 = aa;
@@ -55,6 +57,11 @@ public class SourceCode {
 
         return "done";
 
+    }
+
+    public int trial() {
+        int hello_trial = 2;
+        return 4;
     }
 
 }
