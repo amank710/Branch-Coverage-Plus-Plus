@@ -4,8 +4,9 @@ const initialState = {
     pathCoverage: {
         pathCoverageMetadata: "",
         lineHits: {},
-        uncoveredPaths: {}
-    }
+        uncoveredPaths: ""
+    },
+    pathState: false
 };
 
 const pathCoverageSlice = createSlice({
@@ -14,9 +15,12 @@ const pathCoverageSlice = createSlice({
     reducers: {
         setPathCoverage(state, action) {
             state["pathCoverage"] = action.payload.pathCoverage;
+        },
+        setPathState(state, action) {
+            state["pathState"] = action.payload.pathState;
         }
     }
 });
 
-export const {setPathCoverage} = pathCoverageSlice.actions;
+export const {setPathCoverage, setPathState} = pathCoverageSlice.actions;
 export default pathCoverageSlice.reducer;

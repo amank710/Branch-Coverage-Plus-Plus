@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {FileInput, Text} from "@mantine/core";
 import '@mantine/core/styles.css';
 import {useDispatch, useSelector} from "react-redux";
@@ -7,11 +7,16 @@ import {setCodeFile} from "../State/Reducers/codeFileSlice";
 import "../Styling/styles.css";
 import FetchButton from "../Components/FetchButton";
 import {setTestFile} from "../State/Reducers/testFileSlice";
+import {setPathState} from "../State/Reducers/pathCoverageSlice";
 
 const HomePage = () => {
     const dispatch = useDispatch();
     const codeFile = useSelector(selectors.selectCodeFile)["codeFile"];
     const testFile = useSelector(selectors.selectTestFile)["testFile"];
+    const pathState = useSelector(selectors.selectPathCoverage)["pathState"];
+
+    const [codeState, setCodeState] = useState(false);
+    const [testState, setTestState] = useState(false)
 
     const sendFiles = async (event) => {
         const formData = new FormData();
@@ -64,7 +69,21 @@ const HomePage = () => {
                 handleFileRead(event.target.result, fileType);
             };
             reader.readAsText(event);
+
+            dispatch(
+                setPathState({
+                    key: pathState,
+                    pathState: false
+                })
+            );
+
+            if (fileType === "code") {
+                setCodeState(true);
+            } else if (fileType === "test") {
+                setTestState(true);
+            }
         }
+
     }
 
     return (
@@ -80,16 +99,17 @@ const HomePage = () => {
             />
             <div className="text-container">
                 <Text
-                    c="dimmed"
+                    c="teal.4"
+                    fw={500}
                     fz="md"
-                > {codeFile.length > 0 ? "Code file uploaded and saved." : ""} </Text>
+                > {codeState ? "Code file uploaded and saved." : ""} </Text>
             </div>
             <div className="input-container">
                 <FileInput
                     label={"Test File Input"}
                     labelProps={{className: 'custom-label'}}
                     radius={"sm"}
-                    description={"Input your test file here:"}
+                    description={"Input your test file here (ensure it has the word 'test' in the file name):"}
                     placeholder={"Choose a file"}
                     accept={".java"}
                     onChange={file => handleFileUpload(file, "test")}
@@ -97,11 +117,19 @@ const HomePage = () => {
             </div>
             <div className="text-container">
                 <Text
-                    c="dimmed"
+                    c="teal.4"
+                    fw={500}
                     fz="md"
-                > {testFile.length > 0 ? "Test file uploaded and saved." : ""} </Text>
+                > {testState ? "Test file uploaded and saved." : ""} </Text>
             </div>
             <FetchButton/>
+            <div className="text-container">
+                <Text
+                    c="teal.4"
+                    fw={500}
+                    fz="md"
+                > {pathState ? "Data has been processed!" : ""} </Text>
+            </div>
         </div>
     );
 };

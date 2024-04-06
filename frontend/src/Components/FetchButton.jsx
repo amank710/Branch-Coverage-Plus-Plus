@@ -1,16 +1,19 @@
 import {useDispatch, useSelector} from "react-redux";
 import selectors from "../State/selectors";
 import {Button} from "@mantine/core";
-import React from "react";
+import React, {useState} from "react";
 import "../Styling/styles.css";
-import {setPathCoverage} from "../State/Reducers/pathCoverageSlice";
+import {setPathCoverage, setPathState} from "../State/Reducers/pathCoverageSlice";
 import {setChart, setLabels} from "../State/Reducers/chartSlice";
+import {Navigate} from "react-router-dom";
 
 const FetchButton = () => {
     const dispatch = useDispatch();
     const pathCovObject = useSelector(selectors.selectPathCoverage)["pathCoverage"];
     const datasets = useSelector(selectors.selectChart)["datasets"];
     const labels = useSelector(selectors.selectChart)["labels"];
+    const pathState = useSelector(selectors.selectPathCoverage)["pathState"];
+    const [redirect, setRedirect] = useState(false);
 
     const bgColorMapping = [
         'rgba(255, 99, 132, 0.2)',
@@ -36,7 +39,7 @@ const FetchButton = () => {
     }
 
     const getData = async () => {
-        await fetch("http://localhost:8080/api/paths", {
+        const response = await fetch("http://localhost:8080/api/paths", {
             method: "GET",
             mode: "cors",
             headers: {
@@ -47,8 +50,19 @@ const FetchButton = () => {
             .then(data => {
                 console.log(data);
                 setPathCovValues(data);
+                return true;
             })
             .catch(err => console.log(err));
+        if (response) {
+            dispatch(
+                setPathState({
+                    key: pathState,
+                    pathState: true
+                })
+            );
+
+            setRedirect(true);
+        }
     }
 
     const setPathCovValues = (data) => {
@@ -84,7 +98,7 @@ const FetchButton = () => {
 
         // creating the dataset object
         const dataset = [{
-            label: 'Path Coverage',
+            label: 'Branch Coverage',
             data: totalData,
             backgroundColor: bgColors,
             borderColor: borderColors,
@@ -106,13 +120,18 @@ const FetchButton = () => {
         );
     }
 
+    if (redirect) {
+        return <Navigate to="/highlight" replace={true}/>;
+    }
+
     return (
         <div className="button-container">
             <Button
                 size={"compact-md"}
                 onClick={getChartInput}
                 radius={"md"}
-            >Get Data</Button>
+                disabled={pathState}
+            >Process Data</Button>
         </div>
     );
 };

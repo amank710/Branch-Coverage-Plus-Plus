@@ -21,7 +21,7 @@ const ChartPage = () => {
             counter++;
         }
         totalCov = totalCov / counter;
-        return totalCov.toString();
+        return totalCov.toString() + " / 1.0";
     }
 
 
@@ -46,7 +46,7 @@ const ChartPage = () => {
             },
             title: {
                 display: true,
-                text: 'Path Coverage Runs',
+                text: 'Branch Coverage Runs',
                 font: {
                     size: 24,
                     weight: 'normal'
@@ -71,13 +71,13 @@ const ChartPage = () => {
     return (
         <div className="main-container">
             <div className="title-container">
-                <Title order={2} padding={"md"}>Path Coverage - Chart</Title>
+                <Title order={2} padding={"md"}>Branch Coverage - Chart</Title>
             </div>
             <div className="text-container">
                 <Text
                     c="dimmed"
                     fz="md"
-                >Your path coverage score: {pathCovScoreVal}</Text>
+                >Your branch coverage score: {pathCovScoreVal}</Text>
             </div>
             <div className="chart-container">
                 <Bar
