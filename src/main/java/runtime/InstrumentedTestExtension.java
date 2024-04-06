@@ -11,8 +11,10 @@ import com.sun.jdi.AbsentInformationException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,7 +81,14 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             {
                 path = path.substring(1);
             }
-            path.replace("%20", "\\\\");
+            try
+            {
+                path = URLDecoder.decode(path, "UTF-8");
+            }
+            catch (UnsupportedEncodingException e)
+            {
+                System.out.println("[InstrumentedTestExtension]: Error decoding path." + e.getMessage());
+            }
             System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
             VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java");
