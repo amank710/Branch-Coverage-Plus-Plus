@@ -6,19 +6,14 @@ public class SourceCode {
     @Instrumentable
     public String foo(int number, int a) {
         int x = 42;
-
-        int z = number;
+        int z = 10;
         int w = 10;
         int y = number;
         int p = a;
-        //[{[18, 20]=[[19]]}, {[20, 22]=[[21]]}, {[32, 34]=[[33]]}, {[34, 36]=[[35]]}, {[38, 40]=[[39]]}]
-        //[{[19, 21]=[[20]]}, {[21, 23]=[[22]]}, {[33, 35]=[[34]]}, {[35, 37]=[[36]]}, {[39, 41]=[[40]]}]
-//        y = 5;
-//        y = 10 + 2;
-//        y = y + p;//:(
-//        z = y - a;//:(
-        if(z != y) {
-            y = 5; // working
+
+        if(z == y) {
+            y = 5;
+            z = number;
         } else {
             w = 200;
         }

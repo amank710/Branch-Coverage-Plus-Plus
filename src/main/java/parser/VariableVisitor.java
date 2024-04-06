@@ -120,10 +120,29 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
             this.previousNode = elseNode;
 
+
+
             int elseBeginLine = n.getElseStmt().get().getBegin().get().line;
             int elseEndLine = n.getElseStmt().get().getEnd().get().line;
 
-            updateConditionalPath(elseBeginLine, elseEndLine, statementVisitor, "else");
+            if (paths.empty()) {
+                Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> pathMap = new HashMap<>();
+                ArrayList<Integer> ifLines = new ArrayList<>();
+                ifLines.add(elseBeginLine);
+                ifLines.add(elseEndLine);
+
+                ArrayList<Integer> path = new ArrayList<>();
+                statementVisitor.getPath().forEach(line -> path.add(line));
+                ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
+//                System.out.println("If OuterConditional"+path);//[17, 43] vs [17, 43]
+                outerConditionalPath.push(new ArrayList<>(path));
+                pathList.add(path);
+
+                pathMap.put(ifLines, pathList);
+                paths.push(pathMap); // not executed after first
+            } else {
+                updateConditionalPath(elseBeginLine, elseEndLine, statementVisitor, "else");
+            }
 
             //TODO: This is trying to get the line numbers of the else statement
             elseStmt.accept(this, arg);
@@ -139,6 +158,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional = paths.pop();
         ArrayList<Integer> key = new ArrayList<>(outerConditional.keySet()).get(0);
 
+
         // Common logic for both if and else paths.
         if (key.get(0) < beginLine && key.get(1) > endLine) {
             ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
@@ -150,6 +170,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
             ArrayList<Integer> parentPath;
             if (!outerConditionalPath.isEmpty()) {
+                System.out.println("sss" + outerConditionalPath);
+                System.out.println(pathType);
                 parentPath = new ArrayList<>(pathType.equals("else") ? outerConditionalPath.pop() : outerConditionalPath.peek());
             } else {
                 parentPath = new ArrayList<>();
@@ -164,19 +186,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             System.out.println("179" + currentPath);
             System.out.println("179" + statementVisitor.getPath());
             currentPath.addAll(statementVisitor.getPath());
-            // remove line number after if statement
-//            if(statementVisitor.isReturn()) {//
-//                System.out.println("delete");
-//                System.out.println(currentPath);
-//                int returnLine = statementVisitor.getReturnLine();
-//                for (int i = 0; i < currentPath.size(); i++) {
-//                    if (currentPath.get(i) > returnLine) {
-//                        currentPath.remove(i);
-//                        i = i - 1;
-//                    }
-//                }
-//                System.out.println(currentPath);
-//            }
             System.out.println("Current Path " + pathType + currentPath);
             System.out.println("Parent Path " + pathType + parentPath);
             boolean pathsMatch = isPathMatch(parentPath, currentPath, true); // false
@@ -275,8 +284,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         solver.add((BoolExpr) elseExpr);
 //        this.z3Solver.setCondition(elseCondition);
         boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
+        System.out.println("thenConditionResult" + thenConditionResult);
 
         thenHelper(n, arg, thenConditionResult, conditionalNode, dependencies);
+
 
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
         Node afterIfNode = new StateNode();
@@ -285,7 +296,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            System.out.println(outerConditionalPath); // [[41]] vs [[17, 43, 41]]
+            System.out.println("outerConditionalPath" + outerConditionalPath); // [[41]] vs [[17, 43, 41]]
+            if(!outerConditionalPath.isEmpty()) {
+                outerConditionalPath.pop();
+            }
 //            System.out.println( outerConditionalPath.pop());
 
             elseHelper(n, arg, elseConditionResult, conditionalNode, dependencies, afterIfNode);
