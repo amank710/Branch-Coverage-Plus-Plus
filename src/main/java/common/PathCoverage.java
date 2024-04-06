@@ -1,26 +1,31 @@
 package common;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import common.util.Tuple;
 
 public class PathCoverage implements Serializable
 {
-    private Map<String, Tuple<Integer, Integer>> pathCoverageMetadata;
+    private Map<String, List<Integer>> pathCoverageMetadata;
     private Map<String, Map<Integer, Integer>> lineHits;
     private Map<String, Set<List<Integer>>> uncoveredPaths;
 
     public PathCoverage(Map<String, Tuple<Integer, Integer>> pathCoverageMetadata, Map<String, Map<Integer, Integer>> lineHits, Map<String, Set<List<Integer>>> uncoveredPaths)
     {
-        this.pathCoverageMetadata = pathCoverageMetadata;
         this.lineHits = lineHits;
         this.uncoveredPaths = uncoveredPaths;
+
+        this.pathCoverageMetadata = new HashMap<>();
+        for (Map.Entry<String, Tuple<Integer, Integer>> entry : pathCoverageMetadata.entrySet())
+        {
+            Tuple<Integer, Integer> tuple = entry.getValue();
+            this.pathCoverageMetadata.put(entry.getKey(), Arrays.asList(tuple.first(), tuple.second()));
+        }
     }
 
-    public Map<String, Tuple<Integer, Integer>> getPathCoverageMetadata()
+
+    public Map<String, List<Integer>> getPathMetadata()
     {
         return pathCoverageMetadata;
     }

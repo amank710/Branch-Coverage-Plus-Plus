@@ -2,7 +2,7 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const initialState = {
     pathCoverage: {
-        pathCoverageScore: 0,
+        pathCoverageScore: {},
         lineHits: {},
         uncoveredPaths: {}
     }

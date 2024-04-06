@@ -110,10 +110,5 @@
                 </configuration>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>resources/sandbox/</directory>
-            </resource>
-        </resources>
     </build>
 </project>

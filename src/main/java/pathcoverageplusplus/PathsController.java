@@ -44,43 +44,43 @@ public class PathsController {
         // Setting mock input block START
 
         // Mapping line numbers to number of hits per line
-        checkA.put(14, 2);
-        checkA.put(15, 3);
-
-        checkB.put(21, 4);
-        checkB.put(22, 2);
-        checkB.put(23, 2);
-
-        // Mapping Method names to line hits
-        mockHits.put("checkA", checkA);
-        mockHits.put("checkB", checkB);
-
-        // Mapping uncovered line numbers to the array lists
-        checkAUncovered = new ArrayList<>();
-        checkAUncovered.add(12);
-        checkAUncovered.add(13);
-
-        checkBUncovered = new ArrayList<>();
-        checkBUncovered.add(24);
-        checkBUncovered.add(25);
-        checkBUncovered.add(26);
-
-        uncoveredPathsA = new HashSet<>();
-        uncoveredPathsA.add(checkAUncovered);
-        uncoveredPathsB = new HashSet<>();
-        uncoveredPathsB.add(checkBUncovered);
-
-        mockUncovered.put("checkA", uncoveredPathsA);
-        mockUncovered.put("checkB", uncoveredPathsB);
-        mockCoverageMeta.put("checkA", new Tuple<>(2, 2));
-        mockCoverageMeta.put("checkB", new Tuple<>(3, 3));
-
-        // setting mock input
-        mockInput = new PathCoverage(
-                mockCoverageMeta,
-                mockHits,
-                mockUncovered
-        );
+//        checkA.put(14, 2);
+//        checkA.put(15, 3);
+//
+//        checkB.put(21, 4);
+//        checkB.put(22, 2);
+//        checkB.put(23, 2);
+//
+//        // Mapping Method names to line hits
+//        mockHits.put("checkA", checkA);
+//        mockHits.put("checkB", checkB);
+//
+//        // Mapping uncovered line numbers to the array lists
+//        checkAUncovered = new ArrayList<>();
+//        checkAUncovered.add(12);
+//        checkAUncovered.add(13);
+//
+//        checkBUncovered = new ArrayList<>();
+//        checkBUncovered.add(24);
+//        checkBUncovered.add(25);
+//        checkBUncovered.add(26);
+//
+//        uncoveredPathsA = new HashSet<>();
+//        uncoveredPathsA.add(checkAUncovered);
+//        uncoveredPathsB = new HashSet<>();
+//        uncoveredPathsB.add(checkBUncovered);
+//
+//        mockUncovered.put("checkA", uncoveredPathsA);
+//        mockUncovered.put("checkB", uncoveredPathsB);
+//        mockCoverageMeta.put("checkA", new Tuple<>(2, 2));
+//        mockCoverageMeta.put("checkB", new Tuple<>(3, 3));
+//
+//        // setting mock input
+//        mockInput = new PathCoverage(
+//                mockCoverageMeta,
+//                mockHits,
+//                mockUncovered
+//        );
 
         // Setting mock input block END
         return new ResponseEntity<PathCoverage>(mockInput, HttpStatus.OK);
@@ -138,8 +138,7 @@ public class PathsController {
             Map<String, Class<?>> classes = classLoader.loadClasses();
             TestExecutor testExecutor = new TestExecutor(classes.get(testClassName));
             testExecutor.runTests();
-            PathCoverage pathCoverage = testExecutor.getPathCoverage();
-            System.out.println(pathCoverage.getPathCoverageMetadata());
+            mockInput = testExecutor.getPathCoverage();
         } catch (Exception e) {
             e.printStackTrace();
         }
