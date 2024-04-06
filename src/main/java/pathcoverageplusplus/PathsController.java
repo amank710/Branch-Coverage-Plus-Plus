@@ -95,7 +95,7 @@ public class PathsController {
                 String subdirectory = parseSubdirectory(file.getInputStream());
                 prepareFolders(directory, subdirectory);
                 String filename = file.getOriginalFilename();
-                String fullPath = directory + "/" + subdirectory + "/" + filename;
+                String fullPath = directory + "/" + subdirectory + filename;
                 System.out.println("[PathsController] Transferring file to " + fullPath);
                 File newFile = new File(fullPath);
                 if (newFile.exists()) {

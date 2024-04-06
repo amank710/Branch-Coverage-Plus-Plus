@@ -139,6 +139,12 @@ class CodeStepper
         eventManager.reset();
     }
 
+    public void stop()
+    {
+        eventManager.interrupt();
+        vm.dispose();
+    }
+
     public Map<String, Map<String, Tuple<Integer, Integer>>> getMethodBounds()
     {
         return methodBounds;

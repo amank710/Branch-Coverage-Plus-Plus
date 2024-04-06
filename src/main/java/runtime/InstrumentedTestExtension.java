@@ -81,7 +81,7 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             }
             System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
-            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getSimpleName() + ".java");
+            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java");
             variableMapBuilder.build();
 
             processStaticAnalysis(variableMapBuilder.getPath(), instClass.getName(), methodBounds);
@@ -135,6 +135,8 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             e.printStackTrace();
             throw e;
         }
+
+        codeStepper.stop();
     }
 
     Map<Integer, Integer> getLineHits(String methodName)
