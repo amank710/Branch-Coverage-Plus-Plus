@@ -61,9 +61,6 @@ project:
 
     1. Prepare the test file
 
-        1. If you have a `package` declaration, then make sure that the test file has the same `package` declaration as
-           the source file. If you do not have a `package` declaration, then make sure that the test file does not have
-           a `package` declaration.
         1. Make sure to include the following imports:
            ```java
               import runtime.*;
@@ -78,6 +75,10 @@ project:
             ```java
               @Instrument(YourClass.class)
             ```
+
+    1. If you have a `package` declaration, then make sure that the test file has the same `package` declaration as
+       the source file. If you do not have a `package` declaration, then make sure that the test file does not have
+       a `package` declaration.
 
 1. Launch the backend
 
