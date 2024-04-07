@@ -10,18 +10,20 @@ public class SourceCode {
         int w = 6;
         int y = number;
 
-        if(number == 1) {
-            y = 5;
-            z = number;
-        } else {
-            y = 30;
-            if(false) {
-                y = 5;
-                z = number;
-            } else  {
-                y = 30;
-            }
-        }
+        //working
+//        if(number == 1) {
+//            y = 5;
+//            z = number;
+//        } else {
+//            y = 30;
+//            if(false) {
+//                y = 5;
+//                z = number;
+//            } else if(a == 1) {
+//                y = 30;
+//            }
+//        }
+        //[{[13, 16]=[[14, 15]]}, {[16, 24]=[[17, 18, 22]]}]
 
 //        //working:
 //        if(bool) { // this will be executed
@@ -94,30 +96,42 @@ public class SourceCode {
 
         //WOrking
 //
-//        if(bool) { // [bool] this ill be executed
-//            y = 5;
-//            z = number;
-//        } else if (bool) {// [!bool && bool]
-//            y = 10; // not be executed
-//        } else  {
-//            if(bool) { // [!bool && !bool && bool]
+        if(false) { // [bool] this ill be executed
+            y = 5;
+            z = number;
+        } else if (false) {// [!bool && bool]
+            y = 10; // not be executed
+        } else  {
+            y = 30; // not be executed
+            if(false) { // [!bool && !bool && bool]
+                y = 5;
+                z = number;
+            } else {//(and (not (bool)) (not (= number 1)) (= a 1))
+                y = 30; // this will not be executed
+            }
+        }
+
+//        if(true) { // this will be executed
+//            y = 10;
+//            if(false) { // this will be executed
 //                y = 5;
 //                z = number;
-//            } else {//(and (not (bool)) (not (= number 1)) (= a 1))
-//                y = 30; // this will not be executed
+//            } else if(true) { // this will be executed
+//                y = 20;
 //            }
+//            y = 10;
 //        }
 
 //        if(true) { // this will be executed
 //            y = 10;
-//            if(true) { // this will be executed
-//                y = 5;
-//                z = number;
-//                return "done";
-//            } else  { // not (and (not bool) (= a 10))
-//                y = 10;
-//            }
+//        } else if(true) {
+//            y = 20;
+//        }
+//
+//        if(bool) { // this will be executed
 //            y = 10;
+//        } else if(number==1) {
+//            y = 20;
 //        }
 
 
