@@ -22,7 +22,7 @@ const PathCoverageAppShell = () => {
             <AppShell.Header>
                 <Group h="100%" px="lg">
                     <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
-                    <Title order={2} padding={"md"}>Path Coverage Plus Plus</Title>
+                    <Title order={2} padding={"md"}>Branch Coverage Plus Plus</Title>
                 </Group>
             </AppShell.Header>
             <AppShell.Navbar p="md">

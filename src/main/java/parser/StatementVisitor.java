@@ -35,8 +35,9 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
         System.out.println("From block statement" + n.getBegin().get().line + " to " + n.getEnd().get().line);
         n.getStatements().forEach(stmt -> {
 //            System.out.println(stmt.getBegin().get().line);
-            if(!stmt.isIfStmt()) {
+//            if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
+
                 if (stmt.isReturnStmt()) {
                     isReturn = true;
                     setPath(stmt.getBegin().get().line);

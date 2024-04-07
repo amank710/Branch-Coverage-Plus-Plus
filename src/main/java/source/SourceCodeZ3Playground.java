@@ -1,6 +1,6 @@
 package source;
 
-class SourceCodeZ3Playground {
+public class SourceCodeZ3Playground {
     public static Boolean booleanFlags(boolean flag, int ff) {
 
         // No variable tracking
@@ -16,15 +16,22 @@ class SourceCodeZ3Playground {
 
         if (ff > 2) { // Satisfiable
             System.out.println("print");
-//            System.out.println("print");
+
             if (flag)  { // Satisfiable
-                flag = false;
+//                output = true;
                 if (ff > 5) {
-                    output = false;
+//                    output = false;
                     if (ff > 7) {
                         output = false;
                     } else {
                         output = false;
+
+                    }
+                } else {
+                    if (ff < 4) {
+                        if (ff == 3) { // always true
+                            output = false;
+
                         return output;
                     }
                   output= false;
@@ -34,14 +41,16 @@ class SourceCodeZ3Playground {
                         if (ff == 3) { // always true
                             output = false;
                             return output;
+
                         } else {
                             output = false; //ignore
                         }
                         output = false;
                     } else {
-                        output = true;
+                        output = false;
                     }
-                    output = true;
+                    return output;
+                  output = true;
                 }
             } else {
                 output = false;
@@ -60,6 +69,8 @@ class SourceCodeZ3Playground {
                 }
             }
         }
+
+        //[19,17, 23][21,17, 23]
 
 
 //

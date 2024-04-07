@@ -1,5 +1,9 @@
 .custom-label {
-    font-size: 24px;
+    font-size: 22px;
+}
+
+.input-container {
+    padding-top: 1rem;
 }
 
 .main-container {
@@ -21,11 +25,40 @@
 .mantine-Button-root {
     font-size: 16px;
     font-weight: normal;
-    color: dimgrey;
+    color: black;
     background-color: rgba(192, 75, 75, 0.2);
     border-color: rgba(192, 75, 75, 1);
 }
 
-.mantine-Button-root:hover {
+.mantine-Button-root:not([disabled]):hover {
     background-color: rgba(192, 75, 75, 1);
+}
+
+.mantine-Button-root[disabled] {
+    opacity: 50%;
+    color: grey;
+    background-color: white;
+    border-color: dimgrey;
+}
+
+.list-container {
+    padding-top: 1rem;
+    background-color: #fdf6e3;
+}
+
+.mantine-List-root {
+    color: #53514a;
+}
+
+.list-title {
+    font-size: 18px;
+}
+
+.list-item {
+    font-size: 17px;
+    font-weight: lighter;
+}
+
+.list-item b {
+    font-weight: normal;
 }

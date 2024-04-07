@@ -1,6 +1,6 @@
 package runtime;
 
-class PathCoverageNotFoundException extends Exception
+public class PathCoverageNotFoundException extends Exception
 {
     PathCoverageNotFoundException(String message)
     {
