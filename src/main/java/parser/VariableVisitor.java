@@ -375,11 +375,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
         thenHelper(n, arg, thenConditionResult);
 
-
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            if(!outerConditionalPath.isEmpty()) {
+            if(!outerConditionalPath.isEmpty()  && thenConditionResult) {
                 outerConditionalPath.pop();
             }
             previousConditionExpr = ctx.mkNot((BoolExpr) thenCurrent);

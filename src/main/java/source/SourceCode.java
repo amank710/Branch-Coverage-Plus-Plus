@@ -18,7 +18,7 @@ public class SourceCode {
             if(false) {
                 y = 5;
                 z = number;
-            } else if(number == 1) {
+            } else  {
                 y = 30;
             }
         }
