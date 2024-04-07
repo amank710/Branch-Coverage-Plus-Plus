@@ -10,6 +10,7 @@ public class SourceCode {
         int w = 6;
         int y = number;
         int p = a;
+        x = 1 + 5 + (6/3);
         z /= 16 - w;
         w = 5*6/3;
 //        y = (1 + 2);
@@ -17,7 +18,7 @@ public class SourceCode {
         boolean aa = true;
         b2 = aa;
 
-        if(z < w) {
+        if(x == 8) {
             y = 5;
             z = number;
         } else {

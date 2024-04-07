@@ -472,7 +472,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 case MULTIPLY:
                     return ctx.mkMul(new Expr[]{left, right});
                 case DIVIDE:
-                    return ctx.mkDiv((ArithExpr)left, (ArithExpr)right);
+                    return ctx.mkDiv((ArithExpr) left, (ArithExpr) right);
                 // Handle other operators as needed
                 case EQUALS:
                     return ctx.mkEq(left, right);
@@ -493,6 +493,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
 
             }
+        } else if (expr instanceof EnclosedExpr) {
+            EnclosedExpr enclosedExpr = (EnclosedExpr) expr;
+            return evaluateExpression(enclosedExpr.getInner(), symbolMap, ctx);
         }
         System.out.println("Unsupported expression type: " + expr.getClass());
         // Extend to handle more expression types as needed
