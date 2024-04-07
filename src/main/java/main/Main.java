@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        VariableMapBuilder variableMapBuilder = new VariableMapBuilder("src/main/java/source", "SourceCode.java");
+        VariableMapBuilder variableMapBuilder = new VariableMapBuilder("resources/test_classes/", "Demo.java");
         Node root = variableMapBuilder.build();
 //        System.out.println("BUild");
 //        root.visualize();
