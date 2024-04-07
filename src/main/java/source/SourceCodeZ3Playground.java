@@ -17,7 +17,7 @@ public class SourceCodeZ3Playground {
         if (ff > 2) { // Satisfiable
             System.out.println("print");
 
-            if (flag)  { // Satisfiable
+            if (flag) { // Satisfiable
 //                output = true;
                 if (ff > 5) {
 //                    output = false;
@@ -32,45 +32,45 @@ public class SourceCodeZ3Playground {
                         if (ff == 3) { // always true
                             output = false;
 
-                        return output;
-                    }
-                  output= false;
-                } else {
-                    output = true;
-                    if (ff < 4) {
-                        if (ff == 3) { // always true
-                            output = false;
                             return output;
-
-                        } else {
-                            output = false; //ignore
                         }
                         output = false;
                     } else {
-                        output = false;
+                        output = true;
+                        if (ff < 4) {
+                            if (ff == 3) { // always true
+                                output = false;
+                                return output;
+
+                            } else {
+                                output = false; //ignore
+                            }
+                            output = false;
+                        } else {
+                            output = false;
+                        }
+                        return output;
                     }
-                    return output;
-                  output = true;
                 }
             } else {
                 output = false;
             }
             output = true;
-        } else {
-            output = false;
-            if (ff < 1) {
-                output = false;
-            } else {
-                output = false;
-                if (ff == 2) {
-                    output = false;
-                } else {
-                    output = true;
-                }
-            }
-        }
+//        } else {
+//            output = false;
+//            if (ff < 1) {
+//                output = false;
+//            } else {
+//                output = false;
+//                if (ff == 2) {
+//                    output = false;
+//                } else {
+//                    output = true;
+//                }
+//            }
+//        }
 
-        //[19,17, 23][21,17, 23]
+            //[19,17, 23][21,17, 23]
 
 
 //
@@ -171,7 +171,9 @@ public class SourceCodeZ3Playground {
 ////        }
 ////
 
+            return output;
+        }
+
         return output;
     }
-
 }

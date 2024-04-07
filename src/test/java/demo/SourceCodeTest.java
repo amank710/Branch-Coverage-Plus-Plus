@@ -16,6 +16,6 @@ public class SourceCodeTest {
     @Test
     public void testFoo() {
         SourceCode sourceCode = new SourceCode();
-        assertEquals("done", sourceCode.foo(0));
+        assertEquals("done", sourceCode.foo(0, 2, false));
     }
 }
