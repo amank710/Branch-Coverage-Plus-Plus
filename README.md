@@ -27,6 +27,7 @@ project:
 
 ## Usage Instructions
 1. Prepare the source file
+
     a. Make sure to include the following import:
     ```java
         import runtime.*;
@@ -41,6 +42,7 @@ project:
     ```
 
 2. Prepare the test file
+
     a. Make sure to include the following imports:
     ```java
         import runtime.*;
@@ -57,7 +59,6 @@ project:
     ```
 
 3. Upload the source file and test file to our website:
-
     a. To upload the source and test file, open `localhost:3000` in your browser.
 
     b. Upload the code file and test file. Wait for the following messages to appear: `Code file uploaded and saved.`
@@ -73,7 +74,7 @@ project:
     f. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
     `Demo.java` and `DemoTest.java` respectively
 
-        i. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
-        10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
-        two paths to test. Our test case will only test one of these possible branches and we will show uncovered lines
-        in the other branch.
+       i. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
+       10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
+       two paths to test. Our test case will only test one of these possible branches and we will show uncovered lines
+       in the other branch.
