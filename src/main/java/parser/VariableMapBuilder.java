@@ -28,7 +28,11 @@ public class VariableMapBuilder {
             Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths = new Stack<>();
             VariableVisitor variableVisitor = new VariableVisitor(this.variableMapRoot, paths);
             cu.accept(variableVisitor, null);
+
             List<Integer> lines = variableVisitor.getReturnLines();
+
+            System.out.println(paths);
+
             Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> newPaths = new Stack<>();
             // sort the paths, remove the paths that contain the return line
             for (int i = 0; i < paths.size(); i++) {

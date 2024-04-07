@@ -32,6 +32,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     }
     @Override
     public void visit(BlockStmt n, Node arg) {
+        System.out.println("From block statement" + n.getBegin().get().line + " to " + n.getEnd().get().line);
         n.getStatements().forEach(stmt -> {
 //            System.out.println(stmt.getBegin().get().line);
             if(!stmt.isIfStmt()) {

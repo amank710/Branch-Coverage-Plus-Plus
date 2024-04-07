@@ -51,6 +51,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
     private boolean isPreviousIfElse = false;
 
+    private Expr previousConditionExpr;
+
 
     public VariableVisitor(Node initialNode, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths) {
         this.initialNode = initialNode;
@@ -67,23 +69,18 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         return returnLines;
     }
 
-    private void addBinaryExpressionDependencies(BinaryExpr binaryExpr, List<Set<Integer>> dependencies) {
-        Set<Integer> binaryExprDependencies = new HashSet<>();
-        binaryExpr.getLeft().ifNameExpr(nameExpr ->
-                binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
-        binaryExpr.getRight().ifNameExpr(nameExpr ->
-                binaryExprDependencies.addAll(this.previousNode.getState().get(nameExpr.getNameAsString())));
-        dependencies.add(binaryExprDependencies);
-    }
 
-    public void thenHelper(IfStmt n, Node arg, boolean thenCondition, IfStateNode conditionalNode,  List<Set<Integer>> dependencies) {
+    public void thenHelper(IfStmt n, Node arg, boolean thenCondition) {
+        System.out.println("Then Condition: " + thenCondition);
+        System.out.println("line:" + n.getBegin().get().line);
         if (thenCondition) {
             StatementVisitor statementVisitor = new StatementVisitor();
             n.getThenStmt().accept(statementVisitor, arg);
             returnLines.add(statementVisitor.getReturnLine());
-
             int ifBeginLine = n.getThenStmt().getBegin().get().line;
             int ifEndLine = n.getThenStmt().getEnd().get().line;
+            System.out.println("If Begin Line" + ifBeginLine);
+            System.out.println("if path" + paths);
             if (paths.empty()) {
                 Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> pathMap = new HashMap<>();
                 ArrayList<Integer> ifLines = new ArrayList<>();
@@ -102,21 +99,25 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             } else {
                 updateConditionalPath(ifBeginLine, ifEndLine, statementVisitor , "if");
             }
+            System.out.println("after if path" + paths); //after if path[{[44, 52]=[[45]]}]
 
             // Process the 'then' part of the if statement.
-            StateNode thenNode = new StateNode(conditionalNode.getState(), dependencies, n.getThenStmt().getBegin().get().line);
-            this.previousNode = thenNode;
+
 //            this.previousCondition = thenCondition;
             // Visit the 'then' part of the if statement.
 
             //TODO: This is trying to get the line numbers of the else statement
+            boolean temp = isPreviousIfElse;
+            isPreviousIfElse = false;
             n.getThenStmt().accept(this, arg);
+            isPreviousIfElse = temp;
 
-            conditionalNode.setThenNode(thenNode);
         }
     }
 
-    private void elseHelper(IfStmt n, Node arg, boolean elseCondition, IfStateNode conditionalNode, List<Set<Integer>> dependencies, Node afterIfNode, boolean thenConditionResult) {
+    private void elseHelper(IfStmt n, Node arg, boolean elseCondition) {
+        System.out.println("Else Condition: " + elseCondition);
+        System.out.println("line:" + n.getBegin().get().line);
         if (elseCondition) {
 //            this.previousCondition = elseCondition;
             Statement elseStmt = n.getElseStmt().get();
@@ -124,38 +125,17 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             if(elseStmt.isIfStmt()) {
                 isPreviousIfElse = true;
                 elseStmt.accept(this, arg);
+                isPreviousIfElse = false;
                 return;
             } else {
                 isPreviousIfElse = false;
-                Expr elseCurrent = null;
-                if(!thenConditionResult){
-                    elseCurrent = ctx.mkNot((BoolExpr) evaluateExpression(n.getCondition(), parameterSymbols, ctx));
-                    previousConditions.push(elseCurrent);
-                    System.out.println(elseCurrent);
-                } else {
-                    elseCurrent = ctx.mkNot((BoolExpr) previousConditions.peek());
-                    previousConditions.push(elseCurrent);
-                    System.out.println("Else and if is satisfiable");
-                    System.out.println(elseCurrent);
-                }
-                System.out.println("Else Condition" + previousConditions);//(not (not bool))
-                Solver solver = ctx.mkSolver();
-                solver.add((BoolExpr) elseCurrent);
-                boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
-                solver.reset();
-                System.out.println("solvable:" + elseConditionResult);
-                if(!elseConditionResult) {
-                    return;
-                }
                 elseStmt.accept(statementVisitor, arg);
             }
             returnLines.add(statementVisitor.getReturnLine());
-            StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
-            this.previousNode = elseNode;
 
             int elseBeginLine = n.getElseStmt().get().getBegin().get().line;
             int elseEndLine = n.getElseStmt().get().getEnd().get().line;
-
+            System.out.println("eelse path" + paths);//must be else pat[{[44, 52]=[[45, 47, 48]]}]
             if (paths.empty()) {
                 Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> pathMap = new HashMap<>();
                 ArrayList<Integer> ifLines = new ArrayList<>();
@@ -163,6 +143,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 ifLines.add(elseEndLine);
 
                 ArrayList<Integer> path = new ArrayList<>();
+
                 statementVisitor.getPath().forEach(line -> path.add(line));
                 ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
 //                System.out.println("If OuterConditional"+path);//[17, 43] vs [17, 43]
@@ -179,14 +160,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
             //TODO: This is trying to get the line numbers of the else statement
             if(!elseStmt.isIfStmt()) {
-
+                boolean temp = isPreviousIfElse;
+                isPreviousIfElse = false;
                 elseStmt.accept(this, arg);
+                isPreviousIfElse = temp;
             }
 
-
-            conditionalNode.setElseNode(elseNode);
-            // Merge 'then' and 'else' states.
-            afterIfNode.setState(afterIfNode.mergeStates(this.previousNode.getState()));
         }
     }
 
@@ -263,6 +242,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         //check the empty path if so ignore it
         if (!newOuterConditionalMap.isEmpty() &&!newOuterConditionalMap.values().toArray()[0].toString().equals("[[]]")){
             paths.push(newOuterConditionalMap);
+            System.out.println("New Path" + newOuterConditionalMap);
+        } else {
+            System.out.println("Empty path");
+            System.out.println(newOuterConditionalMap);
         }
     }
 
@@ -307,53 +290,89 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         return null;
     }
 
+    public Expr findSatisfiableExpr(Expr current) {
+        Stack<Expr> copyPrevious = (Stack<Expr>) previousConditions.clone();
+        while (!copyPrevious.isEmpty()) {
+            Expr previous = copyPrevious.pop();
+            Expr unsatisfiable = ctx.mkAnd(ctx.mkNot((BoolExpr) previous), (BoolExpr) current);
+            Solver solver = ctx.mkSolver();
+            solver.add((BoolExpr) unsatisfiable);
+
+            if (solver.check() == Status.SATISFIABLE) {
+                return previous;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void visit(IfStmt n, Node arg) {
-        Expression originalCondition =previousCondition;
         Expression thenCondition = n.getCondition();
         Expr thenCurrent = evaluateExpression(thenCondition, Map.copyOf(parameterSymbols), ctx);
         Expr previous = null;
         boolean thenConditionResult = true;
         Solver solver = ctx.mkSolver();
         System.out.println("line:" + n.getBegin().get().line);
-        if(!previousConditions.isEmpty()) {
-            System.out.println("unsatisfiable " +  findUnsatisfiableExpr(thenCurrent));
-            if(findUnsatisfiableExpr(thenCurrent) != null) {
+        System.out.println("is this else if" + isPreviousIfElse);
+
+        if (!previousConditions.isEmpty()) { // if there is a previous condition
+            previous = previousConditions.peek();
+            Expr localPrevious = previous;
+            // Combine the current condition with the negation of the previous condition
+            Expr combinedCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) thenCurrent);
+            System.out.println("combinedCondition;" + combinedCondition);
+            System.out.println(previousConditions);
+            solver.add((BoolExpr) combinedCondition);
+            // Check if the combined condition is satisfiable
+            if (solver.check() != Status.SATISFIABLE) { // if the combined condition is unsatisfiable
                 thenConditionResult = false;
+                System.out.println("unsatisfiable " + combinedCondition);
             } else {
-                previous = previousConditions.peek();
+                // If satisfiable, update the stack with the new combined condition for further checks
                 System.out.println("previous if " + previousConditions);
-                thenCurrent = ctx.mkAnd(ctx.mkNot((BoolExpr) previous), (BoolExpr) thenCurrent);
-                System.out.println("thenCurrent if " + thenCurrent);
-                solver.add((BoolExpr) thenCurrent);
-                thenConditionResult = solver.check() == Status.SATISFIABLE;
-                solver.reset();
+                System.out.println("thenCurrent if " + combinedCondition);
+                Expr updateCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) ctx.mkNot((BoolExpr) thenCurrent));
+                previousConditions.push(updateCondition);
+                previousConditionExpr = thenCurrent;
             }
+            solver.reset(); // Reset the solver for the next use
         } else {
+            // If there is no previous condition, just check the current condition alone
             solver.add((BoolExpr) thenCurrent);
-            previousConditions.push(thenCurrent);
             thenConditionResult = solver.check() == Status.SATISFIABLE;
-            solver.reset();
+            if (thenConditionResult) {
+                System.out.println("thenConditionResult" + thenConditionResult);
+                previousConditions.push( ctx.mkNot((BoolExpr) thenCurrent));
+                previousConditionExpr = thenCurrent;
+            }
+            solver.reset(); // Reset the solver for the next use
         }
 
-        List<Set<Integer>> dependencies = new ArrayList<>(this.previousNode.getDependencies());
-        // Create a new IfStateNode, encapsulating the current state and the extracted condition.
-        IfStateNode conditionalNode = new IfStateNode(
-                this.previousNode.getState(), dependencies, n.getBegin().get().line, thenCondition
-        );
-        this.previousNode.setChild(conditionalNode);
 
         Expression elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-        Expr elseExpr = evaluateExpression(elseCondition, parameterSymbols, ctx);
-        solver.reset();
-        solver.add((BoolExpr) elseExpr);
+        Expr elseCurrent = evaluateExpression(elseCondition, Map.copyOf(parameterSymbols), ctx);
+        if(previous != null) {
+            System.out.println("previous" + previous);
+            System.out.println(previousConditions);
+            System.out.println("else: " + elseCurrent);
+            System.out.println("previous" + previous);
+            elseCurrent = ctx.mkAnd((BoolExpr) ctx.mkNot((BoolExpr) previous), (BoolExpr) elseCurrent);
+            System.out.println("elseCurrent:" + elseCurrent);
+        } else {
+            System.out.println("elseCurrent previous empty" + elseCurrent);
+        }
+
+        solver.add((BoolExpr) elseCurrent);
         boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
+        System.out.println("elseConditionResult : " + elseConditionResult);
+        System.out.println("elseCurrent" + elseCurrent);
+        solver.reset();
+        System.out.println(n.getBegin().get().line);
         System.out.println("thenConditionResult" + thenConditionResult);
+        System.out.println(thenCondition);
 
-        thenHelper(n, arg, thenConditionResult, conditionalNode, dependencies);
+        thenHelper(n, arg, thenConditionResult);
 
-        Node afterIfNode = new StateNode();
-        afterIfNode.setState(this.previousNode.getState());
 
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
@@ -361,32 +380,17 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             if(!outerConditionalPath.isEmpty()) {
                 outerConditionalPath.pop();
             }
+            previousConditionExpr = ctx.mkNot((BoolExpr) thenCurrent);
             System.out.println("outerConditionalPath" + paths   );
-//            System.out.println( outerConditionalPath.pop());
-
-            elseHelper(n, arg, elseConditionResult, conditionalNode, dependencies, afterIfNode, thenConditionResult);
+            System.out.println("elseConditionResult" + elseConditionResult);
+            elseHelper(n, arg, elseConditionResult);
         }
 
-        // Clean up by removing the last set of dependencies after leaving the if statement.
-        List<Set<Integer>> originalDependencies = new ArrayList<>(this.previousNode.getDependencies());
-        if (!originalDependencies.isEmpty()) {
-            originalDependencies.remove(conditionalNode.getDependencies().size() - 1);
-        }
 
-//        System.out.println("Step 9 Visited Line");
         // Add the lines visited by the if statement to the visitedLine set to avoid overwriting the state
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
             visitedLine.add(i);
         }
-
-        // Set the dependencies of the afterIfNode to the original dependencies
-        afterIfNode.setDependencies(originalDependencies);
-        afterIfNode.setLineNumber(n.getEnd().get().line);
-        conditionalNode.setChild(afterIfNode);
-
-        this.previousCondition = originalCondition;
-        this.previousNode = afterIfNode;
-//        System.out.println("Path " + paths);
     }
 
     private boolean checkPreviousConditions() {
@@ -416,7 +420,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
 //            processAssignStaticValue(variableName, var.getInitializer().get());
-            previousNode = processNode(variableName, lines, previousNode);
+//            previousNode = processNode(variableName, lines, previousNode);
         });
     }
 
@@ -439,7 +443,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             lines.addAll(valLineNumbers);
         }
 //        processAssignStaticValue(variableName, n.getValue());
-        previousNode = processNode(variableName, lines, previousNode);
+//        previousNode = processNode(variableName, lines, previousNode);
     }
 
     private void updateSymbolMapWithAssignment(AssignExpr assignExpr, Map<String, Expr> symbolMap, Context ctx) {
@@ -469,7 +473,20 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 case LOGICAL_COMPLEMENT:
                     return ctx.mkNot((BoolExpr) unary);
             }
-        }  else if (expr instanceof BinaryExpr) {
+        }  else if (expr instanceof MethodCallExpr) {
+            MethodCallExpr methodCall = (MethodCallExpr) expr;
+            String methodName = methodCall.getNameAsString();
+            // Generate a unique symbol for this function call
+            // For simplicity, using method name with a counter or UUID can be a starting point
+            String uniqueSymbolName = methodName + "_" + UUID.randomUUID().toString();
+            // Depending on the expected return type, create a new symbolic constant
+            // Here assuming an integer return type for simplicity
+            Expr newSymbol = ctx.mkIntConst(uniqueSymbolName);
+            // Optionally, you might want to store some additional metadata about the function call
+            // e.g., its arguments, to use later in your analysis or when refining your symbolic execution model
+            symbolMap.put(uniqueSymbolName, newSymbol);
+            return newSymbol;
+        } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr) expr;
             Expr left = evaluateExpression(binaryExpr.getLeft(), symbolMap, ctx);
             Expr right = evaluateExpression(binaryExpr.getRight(), symbolMap, ctx);
@@ -550,7 +567,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             parameterSymbols.put(variableName, paramExpr);
             int line = n.getBegin().get().line;
             lines.add(line);
-            previousNode = processNode(variableName, lines, previousNode);
+//            previousNode = processNode(variableName, lines, previousNode);
         });
         n.getBody().ifPresent(body -> body.accept(this, arg));
     }
@@ -569,48 +586,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         }
     }
 
-    // REQUIRES: lines[0] is the current line number always
-    private Node processNode(String variableName, ArrayList<Integer> lines, Node parent) {
-        if (parent == null) {
-            parent = initialNode;
-        }
-        if (visitedLine.contains(lines.get(0))) {
-            return parent;
-        }
-        Map<String, Set<Integer>> currentState = parent.getState();
-//        System.out.println("current state" + currentState);
-        if (!currentState.containsKey(variableName) || !currentState.get(variableName).contains(lines.get(0))) {
-
-            Map<String, Set<Integer>> newState = new HashMap<>();
-            for (Map.Entry<String, Set<Integer>> entry : currentState.entrySet()) {
-                newState.put(entry.getKey(), new HashSet<>(entry.getValue()));
-            }
-            // Add the new variable assignment to the state
-            // computeIfAbsent is a method that returns the value of the specified key in the map
-
-            for (int l : lines) {
-                newState.computeIfAbsent(variableName, k -> new HashSet<>()).add(l);
-            }
-
-            Node newNode = new StateNode();
-
-            // If the variable has dependencies (so in if block), add the dependencies to the new node state
-            if (parent.getDependencies().size() > 0) {
-                List<Set<Integer>> dependencies = new ArrayList<>(parent.getDependencies());
-                for (Set<Integer> dependency : dependencies) {
-                    newState.computeIfAbsent(variableName, k -> new HashSet<>()).addAll(dependency);
-                }
-            }
-            newNode.setState(newState);
-            newNode.setLineNumber(lines.get(0));
-            newNode.setDependencies(parent.getDependencies());
-
-            parent.setChild(newNode);
-            return newNode;
-        }
-
-        return parent;
-    }
 
     private Set<Integer> assignValLineNumbers(ArrayList<Integer> lines, String valueName) {
         Map<String, Set<Integer>> currentState;
