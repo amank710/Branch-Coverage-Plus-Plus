@@ -26,6 +26,10 @@ project:
 - Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the function of interest
 - Each assertion in your test file must pass for the analysis to be successful
 
+## Dependencies
+- Docker
+- npm
+
 ## Usage Instructions
 1. Prepare the source file
 
@@ -59,6 +63,18 @@ project:
         ```java
           @Instrument(YourClass.class)
         ```
+
+1. Launch the backend
+
+    1. Build the backend: `docker build --tag backend .`
+    1. Run the backend: `docker run -p 8000:8080 backend`
+    1. Wait for the following message to appear: `Started PathCoveragePlusplusApplication`
+    **Note:** Please restart the backend between subsequent attempts to analyze code and test files.
+
+1. Launch the frontend
+    1. Navigate to the frontend directory: `cd frontend`
+    1. Install the dependencies: `npm install`
+    1. Start the frontend: `npm start`
 
 1. Upload the source file and test file to our website:
     1. To upload the source and test file, open `localhost:3000` in your browser.
