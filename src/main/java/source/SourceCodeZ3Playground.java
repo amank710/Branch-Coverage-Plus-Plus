@@ -15,6 +15,7 @@ public class SourceCodeZ3Playground {
 
         if (ff > 2) { // Satisfiable
             System.out.println("print");
+
             if (flag)  { // Satisfiable
 //                output = true;
                 if (ff > 5) {
@@ -23,11 +24,23 @@ public class SourceCodeZ3Playground {
                         output = false;
                     } else {
                         output = false;
+
                     }
                 } else {
                     if (ff < 4) {
                         if (ff == 3) { // always true
                             output = false;
+
+                        return output;
+                    }
+                  output= false;
+                } else {
+                    output = true;
+                    if (ff < 4) {
+                        if (ff == 3) { // always true
+                            output = false;
+                            return output;
+
                         } else {
                             output = false; //ignore
                         }
@@ -36,7 +49,7 @@ public class SourceCodeZ3Playground {
                         output = false;
                     }
                     return output;
-//                    output = true;
+                  output = true;
                 }
             } else {
                 output = false;
@@ -55,26 +68,29 @@ public class SourceCodeZ3Playground {
                 }
             }
         }
+
         //[19,17, 23][21,17, 23]
 
+
 //
-        if (output) {
-            output = false;
-            // uncomment to get empty stack exception
+//        if (output) {
+//            output = false; ///output updated here, changes the static varaible
+//            // uncomment to get empty stack exception
 //            if (ff == 5) {
 //                output = false;
 //            } else {
 //                output = true;
 //            }
-        } else {
-            output = true;
-        }
-
-        if (abc == 5) { // Unsatisfiable
-            output = a;
-        } else {
-            output = true;
-        }
+//            output = false;
+//        } else {
+//            output = true;
+//        }
+//
+//        if (abc == 5) { // Unsatisfiable
+//            output = a;
+//        } else {
+//            output = true;
+//        }
 //
 //        if (abc == abc && 4 > 5) { // Unsatisfiable
 //            output = a;
