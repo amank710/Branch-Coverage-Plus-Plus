@@ -403,6 +403,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
             visitedLine.add(i);
         }
+
     }
 
     private boolean checkPreviousConditions() {

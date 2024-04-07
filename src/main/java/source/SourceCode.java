@@ -93,23 +93,17 @@ public class SourceCode {
 //        }
         //[{[71, 74]=[[72, 73]]}, {[74, 76]=[[75]]}, {[78, 80]=[[79]]}]
 
-
-        //WOrking
-//
-        if(false) { // [bool] this ill be executed
-            y = 5;
-            z = number;
-        } else if (false) {// [!bool && bool]
-            y = 10; // not be executed
-        } else  {
-            y = 30; // not be executed
-            if(false) { // [!bool && !bool && bool]
-                y = 5;
-                z = number;
-            } else {//(and (not (bool)) (not (= number 1)) (= a 1))
-                y = 30; // this will not be executed
-            }
-        }
+//        if (bool) {// [!bool && bool]
+//            y = 10; // not be executed
+//        } else  {
+//            y = 30; // not be executed
+//            if(false) { // [!bool && !bool && bool]
+//                y = 5;
+//                z = number;
+//            } else {//(and (not (bool)) (not (= number 1)) (= a 1))
+//                y = 30; // this will not be executed
+//            }
+//        }
 
 //        if(true) { // this will be executed
 //            y = 10;

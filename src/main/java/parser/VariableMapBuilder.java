@@ -29,6 +29,7 @@ public class VariableMapBuilder {
             VariableVisitor variableVisitor = new VariableVisitor(this.variableMapRoot, paths);
             cu.accept(variableVisitor, null);
 
+
             List<Integer> lines = variableVisitor.getReturnLines();
 
             System.out.println(paths);
