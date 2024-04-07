@@ -48,6 +48,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
             }
         );
 
+
     }
 
     public void visit(IfStmt n, Node arg) {
@@ -57,7 +58,6 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
         if(n.getElseStmt().isPresent()) {
             n.getElseStmt().get().accept(this, arg);
         }
-
     }
 
     public List<Integer> getPath() {

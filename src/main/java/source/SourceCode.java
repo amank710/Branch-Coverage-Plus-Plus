@@ -10,11 +10,17 @@ public class SourceCode {
         int w = 6;
         int y = number;
 
-        if(x == 8) {
+        if(number == 1) {
             y = 5;
             z = number;
         } else {
             y = 30;
+            if(false) {
+                y = 5;
+                z = number;
+            } else if(number == 1) {
+                y = 30;
+            }
         }
 
 //        //working:
@@ -128,6 +134,7 @@ public class SourceCode {
 //                y = 30;
 //            }
 //        }
+
 
 //        Else: {
 //            if (aa) {
