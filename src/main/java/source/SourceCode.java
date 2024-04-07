@@ -7,16 +7,17 @@ public class SourceCode {
     public String foo(int number, int a, boolean bool) {
         int x = 42;
         int z = 10;
-        int w = 10;
+        int w = 6;
         int y = number;
         int p = a;
-        z += 6 - y;
-        w -= z;
+        z /= 16 - w;
+        w = 5*6/3;
+//        y = (1 + 2);
         boolean b2 = bool;
         boolean aa = true;
         b2 = aa;
 
-        if(z > w) {
+        if(z < w) {
             y = 5;
             z = number;
         } else {

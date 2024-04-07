@@ -411,6 +411,20 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 Expr subtractionResult = ctx.mkSub(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
                 symbolMap.put(targetVar, subtractionResult);
                 break;
+            case MULTIPLY:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // If the variable isn't in the map, initialize it
+                Expr multiplicationResult = ctx.mkMul(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, multiplicationResult);
+                break;
+            case DIVIDE:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // If the variable isn't in the map, initialize it
+                Expr divisionResult = ctx.mkDiv((ArithExpr)currentExpr, (ArithExpr)evaluateExpression(assignExpr.getValue(), symbolMap, ctx));
+                symbolMap.put(targetVar, divisionResult);
+                break;
+            default:
+                Expr evaluatedExprDefault = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
+                symbolMap.put(targetVar, evaluatedExprDefault); // Update the map with the new or updated symbolic expression
+                break;
         }
 
 
@@ -455,8 +469,10 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                     return ctx.mkAdd(new Expr[]{left, right});
                 case MINUS:
                     return ctx.mkSub(new Expr[]{left, right});
-//                case DIVIDE:
-//                    return ctx.mkDiv(new)
+                case MULTIPLY:
+                    return ctx.mkMul(new Expr[]{left, right});
+                case DIVIDE:
+                    return ctx.mkDiv((ArithExpr)left, (ArithExpr)right);
                 // Handle other operators as needed
                 case EQUALS:
                     return ctx.mkEq(left, right);
