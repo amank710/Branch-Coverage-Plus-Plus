@@ -245,6 +245,7 @@ public class SourceCodeZ3Playground {
 //////        }
 //////
 //
+
 ////        if (flag) { // satisfiable
 ////            output = true;
 ////        } else if(flag && !flag ) { // Not satisfiable
@@ -283,3 +284,4 @@ public class SourceCodeZ3Playground {
         return output;
     }
 }
+
