@@ -1,53 +1,135 @@
-import React from "react";
-import {Button, FileInput, Text} from "@mantine/core";
+import React, {useState} from "react";
+import {FileInput, Text} from "@mantine/core";
 import '@mantine/core/styles.css';
 import {useDispatch, useSelector} from "react-redux";
 import selectors from "../State/selectors";
 import {setCodeFile} from "../State/Reducers/codeFileSlice";
 import "../Styling/styles.css";
 import FetchButton from "../Components/FetchButton";
+import {setTestFile} from "../State/Reducers/testFileSlice";
+import {setPathState} from "../State/Reducers/pathCoverageSlice";
 
 const HomePage = () => {
     const dispatch = useDispatch();
     const codeFile = useSelector(selectors.selectCodeFile)["codeFile"];
+    const testFile = useSelector(selectors.selectTestFile)["testFile"];
+    const pathState = useSelector(selectors.selectPathCoverage)["pathState"];
 
-    const handleFileRead = (content) => {
-        // setting state for code file
-        dispatch(
-            setCodeFile({
-                key: codeFile,
-                codeFile: content
+    const [codeState, setCodeState] = useState(false);
+    const [testState, setTestState] = useState(false)
+
+    const sendFiles = async (event) => {
+        const formData = new FormData();
+        formData.append('file', event);
+        const url = "http://localhost:8080/api/paths";
+
+        const response = await fetch(url, {
+            method: "PUT",
+            mode: "cors",
+            body: formData
+        })
+            .then(response => {
+                console.log(response);
+                return response;
             })
-        );
-        // can pass content to backend here or something
+            .catch(err => console.log(err));
+
+        return !(response === undefined || response === null);
     }
 
-    const handleFileUpload = (event) => {
-        const reader = new FileReader();
-        reader.onloadend = (event) => {
-            handleFileRead(event.target.result);
-        };
-        reader.readAsText(event);
+    const handleFileRead = (content, fileType) => {
+        // setting state for code file
+        if (fileType === "code") {
+            dispatch(
+                setCodeFile({
+                    key: codeFile,
+                    codeFile: content
+                })
+            );
+        } else if (fileType === "test") {
+            dispatch(
+                setTestFile({
+                    key: testFile,
+                    testFile: content
+                })
+            );
+        }
+    }
+
+    const handleFileUpload = async (event, fileType) => {
+        if (event === null || fileType === null) {
+            console.log("Error with file selection");
+            return;
+        }
+
+        const responseIsGood = await sendFiles(event);
+        if (responseIsGood) {
+            const reader = new FileReader();
+            reader.onloadend = (event) => {
+                handleFileRead(event.target.result, fileType);
+            };
+            reader.readAsText(event);
+
+            dispatch(
+                setPathState({
+                    key: pathState,
+                    pathState: false
+                })
+            );
+
+            if (fileType === "code") {
+                setCodeState(true);
+            } else if (fileType === "test") {
+                setTestState(true);
+            }
+        }
+
     }
 
     return (
         <div className="main-container">
             <FileInput
-                clearable
-                label={"File Input"}
+                label={"Code File Input"}
                 labelProps={{className: 'custom-label'}}
                 radius={"sm"}
-                description={"To get started, input your file here:"}
+                description={"Input your code file here:"}
                 placeholder={"Choose a file"}
-                onChange={file => handleFileUpload(file)}
+                accept={".java"}
+                onChange={file => handleFileUpload(file, "code")}
             />
             <div className="text-container">
                 <Text
-                    c="dimmed"
+                    c="teal.4"
+                    fw={500}
                     fz="md"
-                > {codeFile.length > 0 ? "File uploaded and saved." : ""} </Text>
+                > {codeState ? "Code file uploaded and saved." : ""} </Text>
             </div>
-            <FetchButton />
+            <div className="input-container">
+                <FileInput
+                    label={"Test File Input"}
+                    labelProps={{className: 'custom-label'}}
+                    radius={"sm"}
+                    description={"Input your test file here (ensure it has the word 'test' in the file name):"}
+                    placeholder={"Choose a file"}
+                    accept={".java"}
+                    onChange={file => handleFileUpload(file, "test")}
+                />
+            </div>
+            <div className="text-container">
+                <Text
+                    c="teal.4"
+                    fw={500}
+                    fz="md"
+                > {testState ? "Test file uploaded and saved." : ""} </Text>
+            </div>
+            <FetchButton/>
+            <div className="text-container">
+                <Text
+                    c="teal.4"
+                    fw={500}
+                    fz="md"
+                > {pathState ? "Data has been processed!" : ""} </Text>
+            </div>
         </div>
     );
 };

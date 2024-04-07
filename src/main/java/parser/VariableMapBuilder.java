@@ -66,7 +66,8 @@ public class VariableMapBuilder {
 
             return this.variableMapRoot;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("[VariableMapBuilder] Error: " + e.getMessage());
+            //e.printStackTrace();
         }
         return null;
     }

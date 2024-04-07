@@ -33,8 +33,9 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     public void visit(BlockStmt n, Node arg) {
         n.getStatements().forEach(stmt -> {
 //            System.out.println(stmt.getBegin().get().line);
-            if(!stmt.isIfStmt()) {
+//            if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
+
                 if (stmt.isReturnStmt()) {
                     isReturn = true;
                     setPath(stmt.getBegin().get().line);

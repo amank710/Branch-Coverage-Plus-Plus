@@ -1,28 +1,33 @@
 package common;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
+
+import common.util.Tuple;
 
 public class PathCoverage implements Serializable
 {
-    private double pathCoverageScore;
+    private Map<String, List<Integer>> pathCoverageMetadata;
     private Map<String, Map<Integer, Integer>> lineHits;
-    private Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths;
+    private Map<String, Set<List<Integer>>> uncoveredPaths;
 
-    public PathCoverage(double pathCoverageScore, Map<String, Map<Integer, Integer>> lineHits, Map<String, ArrayList<ArrayList<Integer>>> uncoveredPaths)
+    public PathCoverage(Map<String, Tuple<Integer, Integer>> pathCoverageMetadata, Map<String, Map<Integer, Integer>> lineHits, Map<String, Set<List<Integer>>> uncoveredPaths)
     {
-        this.pathCoverageScore = pathCoverageScore;
         this.lineHits = lineHits;
         this.uncoveredPaths = uncoveredPaths;
+
+        this.pathCoverageMetadata = new HashMap<>();
+        for (Map.Entry<String, Tuple<Integer, Integer>> entry : pathCoverageMetadata.entrySet())
+        {
+            Tuple<Integer, Integer> tuple = entry.getValue();
+            this.pathCoverageMetadata.put(entry.getKey(), Arrays.asList(tuple.first(), tuple.second()));
+        }
     }
 
-    public double getPathCoverageScore()
+
+    public Map<String, List<Integer>> getPathCoverageMetadata()
     {
-        return pathCoverageScore;
+        return pathCoverageMetadata;
     }
 
     public Map<String, Map<Integer, Integer>> getLineHits()
@@ -30,7 +35,7 @@ public class PathCoverage implements Serializable
         return lineHits;
     }
 
-    public Map<String, ArrayList<ArrayList<Integer>>> getUncoveredPaths()
+    public Map<String, Set<List<Integer>>> getUncoveredPaths()
     {
         return uncoveredPaths;
     }
@@ -39,7 +44,7 @@ public class PathCoverage implements Serializable
     public String toString()
     {
         return "PathCoverage{" +
-                "pathCoverageScore=" + pathCoverageScore +
+                "pathCoverageMetadata=" + pathCoverageMetadata + 
                 ", lineHits=" + lineHits +
                 ", uncoveredPaths=" + uncoveredPaths +
                 '}';
