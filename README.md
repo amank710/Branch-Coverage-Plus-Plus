@@ -29,52 +29,48 @@ project:
 ## Usage Instructions
 1. Prepare the source file
 
-    a. Make sure to include the following import:
-    ```java
-        import runtime.*;
-    ```
-    b. For all functions of interest in your source code, add the following annotation:
-    ```java
-        @Instrumentable
-        void foo()
-        {
-            ...
-        }
-    ```
+    1. Make sure to include the following import:
+       ```java
+           import runtime.*;
+       ```
 
-2. Prepare the test file
+    1. For all functions of interest in your source code, add the following annotation:
+       ```java
+            @Instrumentable
+            void foo()
+           {
+                ...
+           }
+       ```
 
-    a. Make sure to include the following imports:
-    ```java
-        import runtime.*;
-        import org.junit.jupiter.api.extension.ExtendWith;
-    ```
-    b. Above the test class, add the following annotation:
-    ```java
-        @ExtendWith(InstrumentedTestExtension.class)
-    ```
-    c. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
+1. Prepare the test file
+
+    1. Make sure to include the following imports:
+       ```java
+          import runtime.*;
+          import org.junit.jupiter.api.extension.ExtendWith;
+       ```
+    1. Above the test class, add the following annotation:
+       ```java
+          @ExtendWith(InstrumentedTestExtension.class)
+       ```
+    1. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
        functions in the specified class.
-    ```java
-        @Instrument(YourClass.class)
-    ```
+        ```java
+          @Instrument(YourClass.class)
+        ```
 
-3. Upload the source file and test file to our website:
-    a. To upload the source and test file, open `localhost:3000` in your browser.
+1. Upload the source file and test file to our website:
+    1. To upload the source and test file, open `localhost:3000` in your browser.
+    
+    1. Upload the code file and test file. Wait for the following messages to appear: `Code file uploaded and saved.` and `Test file uploaded and saved.`
 
-    b. Upload the code file and test file. Wait for the following messages to appear: `Code file uploaded and saved.`
-    and `Test file uploaded and saved.`
-
-    c. Select, the `Process Data` button, which will navigate you to page displaying paths that were missed during the test
-
-    d. In the tab `Uncovered Paths`, you will see specific sequences of paths that were not hit during the analysis.
-
-    e. Using the right-hand navigation bar, in the `Chart` tab, you will see the frequency of how many times each line
-    was hit
-
-    f. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
-    `Demo.java` and `DemoTest.java` respectively
-        i. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
-           10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
-           two paths to test. Our test case will only test one of these possible branches and we will show uncovered lines
-           in the other branch.
+    1. Select the `Process Data` button, which will navigate you to the page displaying paths that were missed during the test.
+    
+    1. In the tab `Uncovered Paths`, you will see specific sequences of paths that were not hit during the analysis.
+    
+    1. Using the right-hand navigation bar, in the `Chart` tab, you will see the frequency of how many times each line was hit.
+    
+    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called `Demo.java` and `DemoTest.java` respectively.
+    
+        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line 10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only two paths to test. Our test case will only test one of these possible branches, and we will show uncovered lines in the other branch.
