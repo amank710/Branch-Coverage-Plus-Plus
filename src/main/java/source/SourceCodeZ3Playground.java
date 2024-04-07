@@ -1,4 +1,78 @@
-//package source;
+package source;
+
+public class SourceCodeZ3Playground {
+    public static Boolean booleanFlags(boolean flag, int ff) {
+
+        // No variable tracking
+        // output is true and a is false but line 12 is satisfiable and line 14 is not
+        // because we never tell z3 what the values are that we are parsing it just
+        // takes boolean on face value
+
+        boolean output = flag;
+        boolean a = false;
+        output = a;
+//        output = a;
+        int abc = 5;
+
+        if (ff > 2) { // Satisfiable
+            System.out.println("print");
+
+            if (flag) { // Satisfiable
+//                output = true;
+                if (ff > 5) {
+//                    output = false;
+                    if (ff > 7) {
+                        output = false;
+                    } else {
+                        output = false;
+
+                    }
+                } else {
+                    if (ff < 4) {
+                        if (ff == 3) { // always true
+                            output = false;
+
+                            return output;
+                        }
+                        output = false;
+                    } else {
+                        output = true;
+                        if (ff < 4) {
+                            if (ff == 3) { // always true
+                                output = false;
+                                return output;
+
+                            } else {
+                                output = false; //ignore
+                            }
+                            output = false;
+                        } else {
+                            output = false;
+                        }
+                        return output;
+                    }
+                }
+            } else {
+                output = false;
+            }
+            output = true;
+//        } else {
+//            output = false;
+//            if (ff < 1) {
+//                output = false;
+//            } else {
+//                output = false;
+//                if (ff == 2) {
+//                    output = false;
+//                } else {
+//                    output = true;
+//                }
+//            }
+//        }
+
+            //[19,17, 23][21,17, 23]
+
+
 //
 //public class SourceCodeZ3Playground {
 //    public static Boolean booleanFlags(boolean flag, int ff) {
@@ -171,7 +245,43 @@
 //////        }
 //////
 //
-//        return output;
-//    }
-//
-//}
+
+////        if (flag) { // satisfiable
+////            output = true;
+////        } else if(flag && !flag ) { // Not satisfiable
+////            output = false;
+////        } else {
+////            output = false;
+////        }
+////
+////        if (flag) { // satisfiable
+////            output = true;
+////        } else if( true ) { //  satisfiable
+////            output = false;
+////        } else {  //Not satisfiable
+////            output = false;
+////        }
+////
+////
+////
+////
+////        if (flag && false) { // Not satisfiable
+////            output = true;
+////        } else {
+////            output = false;
+////        }
+////
+////        if (flag && flag) { // Satisfiable
+////            output = true;
+////        } else {
+////            output = false;
+////        }
+////
+
+            return output;
+        }
+
+        return output;
+    }
+}
+

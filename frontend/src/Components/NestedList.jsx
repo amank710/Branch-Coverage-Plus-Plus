@@ -9,11 +9,11 @@ const NestedList = ({object}) => {
             <List withPadding={true}>
                 {Object.entries(object).map(([method, value]) => (
                     <List.Item key={method} className="list-title">
-                        For the method <b>{method}</b>, use the inputs:
+                        Method <b>{method}</b> is missing these paths (shown by line numbers):
                         <List withPadding={true}>
                             {Object.entries(value).map(([parameter, params]) => (
                                 <List.Item key={parameter} className="list-item">
-                                    <b>{parameter}:</b> {params.join(", ")}
+                                    <b>Path {parameter}:</b> {params.join(", ")}
                                 </List.Item>
                             ))}
                         </List>
