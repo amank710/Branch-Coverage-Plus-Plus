@@ -7,10 +7,15 @@ public class SourceCode {
     public String foo(int number, int a, boolean bool) {
         int x = 42;
         int z = 10;
-        int w = 10;
+        int w = 6;
         int y = number;
-        boolean aa = true;
 
+        if(x == 8) {
+            y = 5;
+            z = number;
+        } else {
+            y = 30;
+        }
 
 //        //working:
 //        if(bool) { // this will be executed
