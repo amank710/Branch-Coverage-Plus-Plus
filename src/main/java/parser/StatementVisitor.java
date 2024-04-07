@@ -38,17 +38,15 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
 //            if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
 
-                    if (stmt.isReturnStmt()) {
-                        isReturn = true;
-                        setPath(stmt.getBegin().get().line);
-                        returnLine = stmt.getBegin().get().line;
-                    } else {
-                        setPath(stmt.getBegin().get().line);
-                    }
+            if (stmt.isReturnStmt()) {
+                isReturn = true;
+                setPath(stmt.getBegin().get().line);
+                returnLine = stmt.getBegin().get().line;
+            } else {
+                setPath(stmt.getBegin().get().line);
+            }
 
-                }
-        );
-
+        });
     }
 
     public void visit(IfStmt n, Node arg) {
