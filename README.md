@@ -60,7 +60,7 @@ project:
 
     a. To upload the source and test file, open `localhost:3000` in your browser.
 
-    b. Upload the code file and test file. Wait for the following messages to appear: ` Code file uploaded and saved.`
+    b. Upload the code file and test file. Wait for the following messages to appear: `Code file uploaded and saved.`
     and `Test file uploaded and saved.`
 
     c. Select, the `Process Data` button, which will navigate you to page displaying paths that were missed during the test
@@ -72,6 +72,7 @@ project:
 
     f. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
     `Demo.java` and `DemoTest.java` respectively
+
         i. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
         10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
         two paths to test. Our test case will only test one of these possible branches and we will show uncovered lines
