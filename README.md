@@ -19,11 +19,13 @@ project:
 - The backend (spring-boot) needs to be restarted after each analysis
 
 ## Input Constraints
-- The source code file and test suite file must have the same `package` declaration or have no `package` declaration at all
+- The source code file and test suite file must have the same `package` declaration or have no `package` declaration at
+  all
 - The test file must only have dependencies to the source code file, standard Java library or our provided library
 - The source code file must only have dependencies to the standard Java library or our provided library
 - The test file must have at least one `@Test` method
-- Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the function of interest
+- Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the
+  function of interest
 - Each assertion in your test file must pass for the analysis to be successful
 
 ## Dependencies
@@ -33,9 +35,13 @@ project:
 ## Usage Instructions
 1. Prepare the source and test files
 
-    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called `Demo.java` and `DemoTest.java` respectively.
+    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
+       `Demo.java` and `DemoTest.java` respectively. If you would like to use these files, skip the rest of this step.
     
-        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line 10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only two paths to test. Our test case will only test one of these possible branches, and we will show uncovered lines in the other branch.
+        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
+           10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
+           two paths to test. Our test case will only test one of these possible branches, and we will show uncovered
+           lines in the other branch.
 
     1. Prepare the source file
     
