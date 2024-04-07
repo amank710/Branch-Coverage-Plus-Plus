@@ -45,6 +45,7 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
                 }else {
                     setPath(stmt.getBegin().get().line);
                 }
+
             }
         );
 

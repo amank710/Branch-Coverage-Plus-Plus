@@ -10,6 +10,7 @@ public class SourceCode {
         int w = 6;
         int y = number;
 
+
         //working
 //        if(number == 1) {
 //            y = 5;
@@ -142,6 +143,7 @@ public class SourceCode {
 //                y = 30;
 //            }
 //        }
+
 
 
 //        Else: {
