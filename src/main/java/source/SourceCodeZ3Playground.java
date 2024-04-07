@@ -8,8 +8,9 @@ public class SourceCodeZ3Playground {
         // because we never tell z3 what the values are that we are parsing it just
         // takes boolean on face value
 
-        boolean output = true;
+        boolean output = flag;
         boolean a = false;
+        output = a;
 //        output = a;
         int abc = 5;
 

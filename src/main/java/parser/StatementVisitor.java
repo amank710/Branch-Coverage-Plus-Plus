@@ -1,6 +1,7 @@
 package parser;
 
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import graph.Node;
 import common.functions.Path;
@@ -47,6 +48,16 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
         });
 
 //        System.out.println(n.getStatements());
+    }
+
+    public void visit(IfStmt n, Node arg) {
+        System.out.println("If statement");
+        System.out.println(n.getThenStmt().isBlockStmt());
+        n.getThenStmt().accept(this, arg);
+        if(n.getElseStmt().isPresent()) {
+            n.getElseStmt().get().accept(this, arg);
+        }
+
     }
 
     public List<Integer> getPath() {

@@ -1,20 +1,18 @@
 package parser;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.expr.UnaryExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.microsoft.z3.*;
 import common.functions.FunctionContext;
 import graph.IfStateNode;
 import graph.Node;
 import graph.StateNode;
-
-import com.github.javaparser.ast.expr.BinaryExpr;
 
 import z3.Z3Solver;
 
@@ -32,6 +30,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     private Node previousNode;
     private Expression previousCondition;
     private Z3Solver z3Solver;
+    // Initialize Z3 context
+    Context ctx = new Context();
+    // Map for keeping track of parameters for Symbolic Execution
+    private static Map<String, Expr> parameterSymbols = new HashMap<>();
+
     private Path path;
     private FunctionContext functionCtx;
 
@@ -113,7 +116,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //            this.previousCondition = elseCondition;
             Statement elseStmt = n.getElseStmt().get();
             StatementVisitor statementVisitor = new StatementVisitor();
-            elseStmt.accept(statementVisitor, arg);
+            if(elseStmt.isIfStmt()) {
+                elseStmt.accept(this, arg);
+            } else {
+                elseStmt.accept(statementVisitor, arg);
+            }
             returnLines.add(statementVisitor.getReturnLine());
             StateNode elseNode = new StateNode(conditionalNode.getState(), dependencies, elseStmt.getBegin().get().line);
             this.previousNode = elseNode;
@@ -121,10 +128,33 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             int elseBeginLine = n.getElseStmt().get().getBegin().get().line;
             int elseEndLine = n.getElseStmt().get().getEnd().get().line;
 
-            updateConditionalPath(elseBeginLine, elseEndLine, statementVisitor, "else");
+            if (paths.empty()) {
+                Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> pathMap = new HashMap<>();
+                ArrayList<Integer> ifLines = new ArrayList<>();
+                ifLines.add(elseBeginLine);
+                ifLines.add(elseEndLine);
+
+                ArrayList<Integer> path = new ArrayList<>();
+                statementVisitor.getPath().forEach(line -> path.add(line));
+                ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
+//                System.out.println("If OuterConditional"+path);//[17, 43] vs [17, 43]
+
+                outerConditionalPath.push(new ArrayList<>(path));
+                pathList.add(path);
+
+
+                pathMap.put(ifLines, pathList);
+                paths.push(pathMap); // not executed after first
+            } else {
+                updateConditionalPath(elseBeginLine, elseEndLine, statementVisitor, "else");
+            }
 
             //TODO: This is trying to get the line numbers of the else statement
-            elseStmt.accept(this, arg);
+            if(!elseStmt.isIfStmt()) {
+
+                elseStmt.accept(this, arg);
+            }
+
 
             conditionalNode.setElseNode(elseNode);
             // Merge 'then' and 'else' states.
@@ -137,23 +167,30 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional = paths.pop();
         ArrayList<Integer> key = new ArrayList<>(outerConditional.keySet()).get(0);
 
-        // Common logic for both if and else paths.
+        System.out.println("Key:" + key.get(0) + " vs " + key.get(1));
+        System.out.println("Key:" + beginLine + " vs " + endLine);
+        System.out.println(key.get(0) < beginLine && key.get(1) > endLine);
+
         if (key.get(0) < beginLine && key.get(1) > endLine) {
             ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
             int pathListSize = pathList.size();
             System.out.println("139" + pathList);
-//
-//            System.out.println(pathType + " key" + key);
-//            System.out.println(pathType + " value" + pathList);
 
             ArrayList<Integer> parentPath;
             if (!outerConditionalPath.isEmpty()) {
+                System.out.println("sss" + outerConditionalPath);
+                System.out.println(pathType);
                 parentPath = new ArrayList<>(pathType.equals("else") ? outerConditionalPath.pop() : outerConditionalPath.peek());
+                System.out.println("178" + outerConditionalPath);
             } else {
                 parentPath = new ArrayList<>();
             }
             System.out.println("150" + statementVisitor.getPath());
-            parentPath.addAll(statementVisitor.getPath());
+            for (int i = 0; i < statementVisitor.getPath().size(); i++) {
+                if(!parentPath.contains(statementVisitor.getPath().get(i))) {
+                    parentPath.add(statementVisitor.getPath().get(i));
+                }
+            }
 //                System.out.println("statementVisitor.getPath()" + statementVisitor.getPath());
             System.out.println("149" + pathList);//[46, 19, 21, 28, 23]
 
@@ -161,20 +198,12 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //            System.out.println("Current Path " + pathType + currentPath);
             System.out.println("179" + currentPath);
             System.out.println("179" + statementVisitor.getPath());
-            currentPath.addAll(statementVisitor.getPath());
-            // remove line number after if statement
-//            if(statementVisitor.isReturn()) {//
-//                System.out.println("delete");
-//                System.out.println(currentPath);
-//                int returnLine = statementVisitor.getReturnLine();
-//                for (int i = 0; i < currentPath.size(); i++) {
-//                    if (currentPath.get(i) > returnLine) {
-//                        currentPath.remove(i);
-//                        i = i - 1;
-//                    }
-//                }
-//                System.out.println(currentPath);
-//            }
+            for (int i = 0; i < statementVisitor.getPath().size(); i++) {
+                if(!currentPath.contains(statementVisitor.getPath().get(i))) {
+                    currentPath.add(statementVisitor.getPath().get(i));
+                }
+            }
+           // currentPath.addAll(statementVisitor.getPath());
             System.out.println("Current Path " + pathType + currentPath);
             System.out.println("Parent Path " + pathType + parentPath);
             boolean pathsMatch = isPathMatch(parentPath, currentPath, true); // false
@@ -196,28 +225,26 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             lines.add(beginLine);
             lines.add(endLine);
             ArrayList<Integer> path = new ArrayList<>();
+            // Common logic for both if and else paths.
+            System.out.println("Key" + path);
+            System.out.println(statementVisitor.getPath());
             statementVisitor.getPath().forEach(line -> path.add(line));
             ArrayList<ArrayList<Integer>> pathList = new ArrayList<>();
             pathList.add(path);
             outerConditionalPath.push(new ArrayList<>(path)); // 45 vs 45
             newOuterConditionalMap.put(lines, pathList);
         }
-
         paths.push(outerConditional);
-        if (!newOuterConditionalMap.isEmpty()) {
+        //check the empty path if so ignore it
+        if (!newOuterConditionalMap.isEmpty() &&!newOuterConditionalMap.values().toArray()[0].toString().equals("[[]]")){
             paths.push(newOuterConditionalMap);
         }
-//
-//        System.out.println("Path" + paths);
-//        System.out.println("OuterConditional" + outerConditionalPath);
     }
 
     private void updateOuterConditional(boolean pathesMatch, ArrayList<ArrayList<Integer>> pathList, int pathListSize, ArrayList<Integer> currentPath, ArrayList<Integer> parentPath, Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional, ArrayList<Integer> key) {
         if (pathesMatch) {
             pathList.remove(pathListSize -1);
             pathList.add(pathListSize -1, currentPath);
-            System.out.println("Here 1"+pathList);
-            System.out.println(currentPath);
             outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize -1)));
         }  else {
             pathList.add(parentPath);
@@ -244,6 +271,9 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(IfStmt n, Node arg) {
         Expression originalCondition =previousCondition;
         Expression thenCondition = n.getCondition();
+        System.out.println("test");
+//        System.out.println(n.getThenStmt());
+//        System.out.println(n.getElseStmt().get().isIfStmt());
 //        if (previousCondition == null) {
 //            thenCondition = n.getCondition();
 //        } else {
@@ -260,12 +290,23 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 this.previousNode.getState(), dependencies, n.getBegin().get().line, thenCondition
         );
         this.previousNode.setChild(conditionalNode);
-        this.z3Solver.setCondition(thenCondition);
-        boolean thenConditionResult = this.z3Solver.solve();
+        Expr thenExpr = evaluateExpression(thenCondition, parameterSymbols, ctx);
+        Solver solver = ctx.mkSolver();
+        solver.add((BoolExpr) thenExpr);
+//        this.z3Solver.setCondition(thenCondition);
+
+        boolean thenConditionResult = solver.check() == Status.SATISFIABLE;
+
         Expression elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-        this.z3Solver.setCondition(elseCondition);
-        boolean elseConditionResult = this.z3Solver.solve();
+        Expr elseExpr = evaluateExpression(elseCondition, parameterSymbols, ctx);
+        solver.reset();
+        solver.add((BoolExpr) elseExpr);
+//        this.z3Solver.setCondition(elseCondition);
+        boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
+        System.out.println("thenConditionResult" + thenConditionResult);
+
         thenHelper(n, arg, thenConditionResult, conditionalNode, dependencies);
+
 
         // Create a copy of the 'then' state to potentially merge with the 'else' state.
         Node afterIfNode = new StateNode();
@@ -274,15 +315,11 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
-            System.out.println("Step 7 Else Condition");
-            System.out.println(outerConditionalPath); // [[41]] vs [[17, 43, 41]]
-            System.out.println( outerConditionalPath.pop());
-
-//            if(originalCondition == null) {
-//                elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-//            } else {
-//                elseCondition = new BinaryExpr(originalCondition, new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT), BinaryExpr.Operator.AND);
-//            }
+            if(!outerConditionalPath.isEmpty()) {
+                outerConditionalPath.pop();
+            }
+            System.out.println("outerConditionalPath" + paths   );
+//            System.out.println( outerConditionalPath.pop());
 
             elseHelper(n, arg, elseConditionResult, conditionalNode, dependencies, afterIfNode);
         }
@@ -316,9 +353,18 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         n.getVariables().forEach(var -> {
             ArrayList<Integer> lines = new ArrayList<Integer>();
             String variableName = var.getNameAsString();
+
+            Expr rhsExpr = null;
+            if (var.getInitializer().isPresent()) {
+                // Evaluate the expression and update the map
+                rhsExpr = evaluateExpression(var.getInitializer().get(), parameterSymbols, this.ctx);
+                parameterSymbols.put(variableName, rhsExpr);
+                System.out.println("!!!!!!" + parameterSymbols);
+            }
+
             int line = var.getBegin().map(pos -> pos.line).orElse(-1); // Use -1 to indicate unknown line numbers
             lines.add(line);
-            processAssignStaticValue(variableName, var.getInitializer().get());
+//            processAssignStaticValue(variableName, var.getInitializer().get());
             previousNode = processNode(variableName, lines, previousNode);
         });
     }
@@ -328,15 +374,132 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         String variableName = n.getTarget().toString();
         String valueName = n.getValue().toString();
-//        System.out.println(variableName + n.getValue().toString());
+        String op = n.getOperator().toString();
+
+
+        updateSymbolMapWithAssignment(n, parameterSymbols, ctx);
+
+        System.out.println("!!!!!!" + variableName + n.getValue().toString());
         int line = n.getBegin().map(pos -> pos.line).orElse(-1); // Same use of -1 for unknown line numbers
         lines.add(line);
         Set<Integer> valLineNumbers = this.assignValLineNumbers(lines, valueName);
         if (!valLineNumbers.isEmpty()) {
             lines.addAll(valLineNumbers);
         }
-        processAssignStaticValue(variableName, n.getValue());
+//        processAssignStaticValue(variableName, n.getValue());
         previousNode = processNode(variableName, lines, previousNode);
+    }
+
+    private void updateSymbolMapWithAssignment(AssignExpr assignExpr, Map<String, Expr> symbolMap, Context ctx) {
+
+
+        String targetVar = assignExpr.getTarget().toString();
+        Expr currentExpr = symbolMap.getOrDefault(targetVar, null);
+
+        switch (assignExpr.getOperator()) {
+            case ASSIGN:
+                Expr evaluatedExpr = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
+                symbolMap.put(targetVar, evaluatedExpr); // Update the map with the new or updated symbolic expression
+                break;
+            case PLUS:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // Fallback if not in map
+                Expr additionResult = ctx.mkAdd(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, additionResult);
+                break;
+            case MINUS:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // Fallback if not in map
+                Expr subtractionResult = ctx.mkSub(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, subtractionResult);
+                break;
+            case MULTIPLY:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // If the variable isn't in the map, initialize it
+                Expr multiplicationResult = ctx.mkMul(new Expr[]{currentExpr, evaluateExpression(assignExpr.getValue(), symbolMap, ctx)});
+                symbolMap.put(targetVar, multiplicationResult);
+                break;
+            case DIVIDE:
+                if (currentExpr == null) currentExpr = ctx.mkIntConst(targetVar); // If the variable isn't in the map, initialize it
+                Expr divisionResult = ctx.mkDiv((ArithExpr)currentExpr, (ArithExpr)evaluateExpression(assignExpr.getValue(), symbolMap, ctx));
+                symbolMap.put(targetVar, divisionResult);
+                break;
+            default:
+                Expr evaluatedExprDefault = evaluateExpression(assignExpr.getValue(), symbolMap, ctx);
+                symbolMap.put(targetVar, evaluatedExprDefault); // Update the map with the new or updated symbolic expression
+                break;
+        }
+
+
+    }
+
+    private Expr evaluateExpression(Expression expr, Map<String, Expr> symbolMap, Context ctx) {
+        if (expr instanceof IntegerLiteralExpr) {
+            int value = ((IntegerLiteralExpr) expr).asInt();
+            return ctx.mkInt(value); // Direct static value
+        } else if (expr instanceof BooleanLiteralExpr) {
+            boolean value = ((BooleanLiteralExpr) expr).getValue();
+            return value ? ctx.mkTrue() : ctx.mkFalse(); // Direct static value
+        } else if (expr instanceof NameExpr) {
+            String varName = ((NameExpr) expr).getNameAsString();
+            return symbolMap.getOrDefault(varName, ctx.mkIntConst(varName)); // Existing symbol or new symbol for uninitialized variable
+        } else if(expr instanceof UnaryExpr) {
+            UnaryExpr unaryExpr = (UnaryExpr) expr;
+            Expr unary = evaluateExpression(unaryExpr.getExpression(), symbolMap, ctx);
+            switch (unaryExpr.getOperator()) {
+                case LOGICAL_COMPLEMENT:
+                    return ctx.mkNot((BoolExpr) unary);
+            }
+        }  else if (expr instanceof MethodCallExpr) {
+            MethodCallExpr methodCall = (MethodCallExpr) expr;
+            String methodName = methodCall.getNameAsString();
+            // Generate a unique symbol for this function call
+            // For simplicity, using method name with a counter or UUID can be a starting point
+            String uniqueSymbolName = methodName + "_" + UUID.randomUUID().toString();
+            // Depending on the expected return type, create a new symbolic constant
+            // Here assuming an integer return type for simplicity
+            Expr newSymbol = ctx.mkIntConst(uniqueSymbolName);
+            // Optionally, you might want to store some additional metadata about the function call
+            // e.g., its arguments, to use later in your analysis or when refining your symbolic execution model
+            symbolMap.put(uniqueSymbolName, newSymbol);
+            return newSymbol;
+        } else if (expr instanceof BinaryExpr) {
+            BinaryExpr binaryExpr = (BinaryExpr) expr;
+            Expr left = evaluateExpression(binaryExpr.getLeft(), symbolMap, ctx);
+            Expr right = evaluateExpression(binaryExpr.getRight(), symbolMap, ctx);
+            switch (binaryExpr.getOperator()) {
+                case PLUS:
+                    return ctx.mkAdd(new Expr[]{left, right});
+                case MINUS:
+                    return ctx.mkSub(new Expr[]{left, right});
+                case MULTIPLY:
+                    return ctx.mkMul(new Expr[]{left, right});
+                case DIVIDE:
+                    return ctx.mkDiv((ArithExpr) left, (ArithExpr) right);
+                // Handle other operators as needed
+                case EQUALS:
+                    return ctx.mkEq(left, right);
+                case GREATER:
+                    return ctx.mkGt((ArithExpr) left, (ArithExpr) right);
+                case LESS:
+                    return ctx.mkLt((ArithExpr) left, (ArithExpr) right);
+                case GREATER_EQUALS:
+                    return ctx.mkGe((ArithExpr) left, (ArithExpr) right);
+                case LESS_EQUALS:
+                    return ctx.mkLe((ArithExpr) left, (ArithExpr) right);
+                case NOT_EQUALS:
+                    return ctx.mkNot(ctx.mkEq(left, right));
+                case AND:
+                    return ctx.mkAnd((BoolExpr) left, (BoolExpr) right);
+                case OR:
+                    return ctx.mkOr((BoolExpr) left, (BoolExpr) right);
+
+
+            }
+        } else if (expr instanceof EnclosedExpr) {
+            EnclosedExpr enclosedExpr = (EnclosedExpr) expr;
+            return evaluateExpression(enclosedExpr.getInner(), symbolMap, ctx);
+        }
+        System.out.println("Unsupported expression type: " + expr.getClass());
+        // Extend to handle more expression types as needed
+        return null; // Placeholder to satisfy return requirement
     }
 
     @Override
@@ -344,6 +507,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         ArrayList<Integer> lines = new ArrayList<Integer>();
         n.getParameters().forEach(parameter -> {
             String variableName = parameter.getNameAsString();
+            System.out.println("!!!!!!!!!" + variableName);
+            Sort paramSort = getTypeSort(parameter.getType(), ctx);
+            // Create a Z3 symbol for the parameter name
+            Symbol paramSymbol = ctx.mkSymbol(variableName);
+            // Create a Z3 constant (symbolic variable) for the parameter
+            Expr paramExpr = ctx.mkConst(paramSymbol, paramSort);
+            parameterSymbols.put(variableName, paramExpr);
             int line = n.getBegin().get().line;
             lines.add(line);
             previousNode = processNode(variableName, lines, previousNode);
@@ -351,16 +521,55 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         n.getBody().ifPresent(body -> body.accept(this, arg));
     }
 
+    private static Sort getTypeSort(com.github.javaparser.ast.type.Type type, Context ctx) {
+        // Example: Determine the sort based on the simple name of the type
+        String typeName = type.toString();
+        switch (typeName) {
+            case "int":
+                return ctx.getIntSort();
+            case "boolean":
+                return ctx.getBoolSort();
+            // Add more cases for other types
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + typeName);
+        }
+    }
+
     private void processAssignStaticValue(String variableName, Expression value) {
-        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr()) {
+//        System.out.println(value);
+//        this.z3Solver.setCondition(previousCondition);
+//        boolean thenCondition = this.z3Solver.solve();
+//        boolean else
+//        if( this.z3Solver.solve()) {
+//            this.z3Solver.removeStaticVariable(variableName);
+//            return;
+//        }
+        if (value.isBooleanLiteralExpr() || value.isIntegerLiteralExpr() || value.isUnaryExpr() || value.isBinaryExpr()) {
             this.z3Solver.addStaticVariableValues(variableName, value);
+
 //            System.out.println(this.z3Solver.getStaticVariableValues());
         } else {
             // means the value is a variable
             if(this.z3Solver.isVariableValueKnown(value.toString())){
                 this.z3Solver.addStaticVariableValues(variableName, this.z3Solver.getVariableValue(value.toString()));
             } else {
-                System.out.println("Variable value is not known");
+                if (previousCondition != null) {
+                    this.z3Solver.setCondition(previousCondition);
+                    boolean thenCondition = this.z3Solver.solve();
+                    System.out.println(new UnaryExpr(previousCondition, UnaryExpr.Operator.LOGICAL_COMPLEMENT));
+                    this.z3Solver.setCondition(new UnaryExpr(previousCondition, UnaryExpr.Operator.LOGICAL_COMPLEMENT));
+                    boolean elseCondition = this.z3Solver.solve();
+
+                    // variableName is dynamically determined
+                    if(thenCondition && elseCondition) {
+                        this.z3Solver.removeStaticVariable(variableName);
+                    }
+
+                } else {
+                    // variableName is dynamically determined
+                    this.z3Solver.removeStaticVariable(variableName);
+                }
+
             }
         }
     }

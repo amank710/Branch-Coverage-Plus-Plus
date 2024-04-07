@@ -58,6 +58,7 @@ public class Z3Solver {
     }
 
     private BoolExpr parseExpression(Expression expr, Context ctx) throws Exception {
+
         if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr) expr;
             Expression leftExpr = binaryExpr.getLeft();
@@ -187,15 +188,21 @@ public class Z3Solver {
     }
 
     public void addStaticVariableValues(String variableName, Expression value) {
+        System.out.println(this.staticVariableValues);
+        System.out.println(value);
         if (value.isBooleanLiteralExpr()) {
             this.staticVariableValues.put(variableName,  value);
         } else if (value.isIntegerLiteralExpr()) {
             this.staticVariableValues.put(variableName, value);
         } else if (value.isUnaryExpr()) {
             this.staticVariableValues.put(variableName, value);
-        } else {
+        }  else if (value.isBinaryExpr()) {
+
+        }
+        else {
             System.out.println("error");
         }
+        System.out.println(this.staticVariableValues);
     }
 
 
@@ -218,6 +225,10 @@ public class Z3Solver {
 //    public boolean getValueFromVariable(String variableName) {
 //         boolean value = this.staticVariableValues.get(variableName);
 //    }
+
+    public void removeStaticVariable(String key) {
+        this.staticVariableValues.remove(key);
+    }
 
     public void setCondition(Expression condition) {
         this.condition = condition;
