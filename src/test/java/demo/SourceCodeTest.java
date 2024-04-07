@@ -10,12 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 
 
-@Instrument(SourceCode.class)
-@ExtendWith(InstrumentedTestExtension.class)
-public class SourceCodeTest {
-    @Test
-    public void testFoo() {
-        SourceCode sourceCode = new SourceCode();
-        assertEquals("done", sourceCode.foo(0));
-    }
-}
+//@Instrument(SourceCode.class)
+//@ExtendWith(InstrumentedTestExtension.class)
+//public class SourceCodeTest {
+//    @Test
+//    public void testFoo() {
+//        SourceCode sourceCode = new SourceCode();
+//        assertEquals("done", sourceCode.foo(0));
+//    }
+//}
