@@ -69,6 +69,7 @@ project:
     1. Build the backend: `docker build --tag backend .`
     1. Run the backend: `docker run -p 8000:8080 backend`
     1. Wait for the following message to appear: `Started PathCoveragePlusplusApplication`
+
     **Note:** Please restart the backend between subsequent attempts to analyze code and test files.
 
 1. Launch the frontend
