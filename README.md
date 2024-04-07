@@ -56,14 +56,20 @@ project:
         @Instrument(YourClass.class)
     ```
 
-3. Upload the source file and test file to our website
+3. Upload the source file and test file to our website:
+
     a. To upload the source and test file, open `localhost:3000` in your browser.
+
     b. Upload the code file and test file. Wait for the following messages to appear: ` Code file uploaded and saved.`
     and `Test file uploaded and saved.`
+
     c. Select, the `Process Data` button, which will navigate you to page displaying paths that were missed during the test
+
     d. In the tab `Uncovered Paths`, you will see specific sequences of paths that were not hit during the analysis.
+
     e. Using the right-hand navigation bar, in the `Chart` tab, you will see the frequency of how many times each line
     was hit
+
     f. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
     `Demo.java` and `DemoTest.java` respectively
         i. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
