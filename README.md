@@ -31,38 +31,44 @@ project:
 - npm
 
 ## Usage Instructions
-1. Prepare the source file
+1. Prepare the source and test files
 
-    1. Make sure to include the following import:
-       ```java
-           import runtime.*;
-       ```
+    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called `Demo.java` and `DemoTest.java` respectively.
+    
+        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line 10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only two paths to test. Our test case will only test one of these possible branches, and we will show uncovered lines in the other branch.
 
-    1. For all functions of interest in your source code, add the following annotation:
-       ```java
-            @Instrumentable
-            void foo()
-           {
-                ...
-           }
-       ```
+    1. Prepare the source file
+    
+        1. Make sure to include the following import:
+           ```java
+               import runtime.*;
+           ```
+    
+        1. For all functions of interest in your source code, add the following annotation:
+           ```java
+                @Instrumentable
+                void foo()
+               {
+                    ...
+               }
+           ```
 
-1. Prepare the test file
-
-    1. Make sure to include the following imports:
-       ```java
-          import runtime.*;
-          import org.junit.jupiter.api.extension.ExtendWith;
-       ```
-    1. Above the test class, add the following annotation:
-       ```java
-          @ExtendWith(InstrumentedTestExtension.class)
-       ```
-    1. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
-       functions in the specified class.
-        ```java
-          @Instrument(YourClass.class)
-        ```
+    1. Prepare the test file
+    
+        1. Make sure to include the following imports:
+           ```java
+              import runtime.*;
+              import org.junit.jupiter.api.extension.ExtendWith;
+           ```
+        1. Above the test class, add the following annotation:
+           ```java
+              @ExtendWith(InstrumentedTestExtension.class)
+           ```
+        1. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
+           functions in the specified class.
+            ```java
+              @Instrument(YourClass.class)
+            ```
 
 1. Launch the backend
 
@@ -87,7 +93,3 @@ project:
     1. In the tab `Uncovered Paths`, you will see specific sequences of paths that were not hit during the analysis.
     
     1. Using the right-hand navigation bar, in the `Chart` tab, you will see the frequency of how many times each line was hit.
-    
-    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called `Demo.java` and `DemoTest.java` respectively.
-    
-        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line 10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only two paths to test. Our test case will only test one of these possible branches, and we will show uncovered lines in the other branch.
