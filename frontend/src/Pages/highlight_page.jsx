@@ -9,37 +9,39 @@ import NestedList from "../Components/NestedList";
 const HighlightPage = () => {
     const codeFile = useSelector(selectors.selectCodeFile)["codeFile"];
     const uncovered = useSelector(selectors.selectPathCoverage)["pathCoverage"]["uncoveredPaths"];
-    const notCoveredLines = [];
+    const colours = [
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(255, 159, 64, 0.5)',
+        'rgba(255, 205, 86, 0.5)',
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(54, 162, 235, 0.5)',
+        'rgba(153, 102, 255, 0.5)',
+        'rgba(201, 203, 207, 0.5)',
+    ];
+    const notCoveredPaths = {};
 
     let highlightMsg = "";
     let inputsMsg = "";
-    // Mock inputs
-    let mockInputs = {
-        foo: {
-            x: [0, 25, 50],
-        },
-        test: {
-            x: [0, 33, 50],
-            y: [true, false]
-        }
-    };
 
+    let counter = 0;
     // loop through all methods
     for (const method in uncovered) {
         // loop through all lines in each method's array to find uncovered branches
         for (let i = 0; i < uncovered[method].length; i++) {
-            // loop through lines per path in a method's array
-            for (let j = 0; j < uncovered[method][i].length; j++) {
-                notCoveredLines.push(uncovered[method][i][j]);
-            }
+            notCoveredPaths[colours[counter]] = uncovered[method][i];
+            // increment counter with every new path
+            counter++;
         }
     }
 
     const lineProps = (lineNumber) => {
         let style = {display: 'block'};
-        if (notCoveredLines.includes(lineNumber)) {
-            // solarized light hex is #fdf6e3
-            style.backgroundColor = "#FAE7B3";
+
+        // loop through all paths to determine the colour
+        for (const path in notCoveredPaths) {
+            if (notCoveredPaths[path].includes(lineNumber)) {
+                style.backgroundColor = path;
+            }
         }
         return {style};
     }
@@ -49,9 +51,9 @@ const HighlightPage = () => {
         if (!(codeFile.length > 0)) {
             highlightMsg = "Please upload the code file again to see line highlighting.";
         }
-        else if (notCoveredLines.length > 0) {
+        else if (Object.keys(notCoveredPaths).length > 0) {
             highlightMsg = "Highlighted lines were not reached/covered.";
-            inputsMsg = "To cover all branches:";
+            inputsMsg = "These paths were not covered:";
         }
         else {
             highlightMsg = "All lines were reached/covered!";
@@ -68,7 +70,7 @@ const HighlightPage = () => {
                 <Tabs defaultValue="highlight">
                     <Tabs.List>
                         <Tabs.Tab value="highlight">Line Highlighting</Tabs.Tab>
-                        <Tabs.Tab value="missing">Missing Inputs</Tabs.Tab>
+                        <Tabs.Tab value="missing">Missing Paths</Tabs.Tab>
                     </Tabs.List>
 
                     <Tabs.Panel value="highlight">
@@ -97,7 +99,7 @@ const HighlightPage = () => {
                         </div>
                         {typeof uncovered === "object" && highlightMsg.includes("Highlighted") ?
                             <div>
-                                <NestedList object={mockInputs} />
+                                <NestedList object={uncovered} />
                             </div>
                             :
                             <></>}

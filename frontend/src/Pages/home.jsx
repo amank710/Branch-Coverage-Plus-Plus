@@ -16,8 +16,9 @@ const HomePage = () => {
     const pathState = useSelector(selectors.selectPathCoverage)["pathState"];
 
     const [codeState, setCodeState] = useState(false);
-    const [testState, setTestState] = useState(false)
-
+    const [testState, setTestState] = useState(false);
+    const [codeLoad, setCodeLoadState] = useState(false);
+    const [testLoadState, setTestLoadState] = useState(false);
     const sendFiles = async (event) => {
         const formData = new FormData();
         formData.append('file', event);
@@ -61,7 +62,12 @@ const HomePage = () => {
             console.log("Error with file selection");
             return;
         }
-
+        if (fileType === "code") {
+            setCodeLoadState(true);
+        } else if (fileType === "test") {
+            setTestLoadState(true);
+        }
+        
         const responseIsGood = await sendFiles(event);
         if (responseIsGood) {
             const reader = new FileReader();
@@ -78,8 +84,10 @@ const HomePage = () => {
             );
 
             if (fileType === "code") {
+                setCodeLoadState(false);
                 setCodeState(true);
             } else if (fileType === "test") {
+                setTestLoadState(false);
                 setTestState(true);
             }
         }
@@ -104,6 +112,13 @@ const HomePage = () => {
                     fz="md"
                 > {codeState ? "Code file uploaded and saved." : ""} </Text>
             </div>
+            <div className="text-container">
+                <Text
+                    c="red"
+                    fw={500}
+                    fz="sd"
+                > {codeLoad ? "Loading..." : ""} </Text>
+            </div>
             <div className="input-container">
                 <FileInput
                     label={"Test File Input"}
@@ -121,6 +136,13 @@ const HomePage = () => {
                     fw={500}
                     fz="md"
                 > {testState ? "Test file uploaded and saved." : ""} </Text>
+            </div>
+            <div className="text-container">
+                <Text
+                    c="red"
+                    fw={500}
+                    fz="md"
+                > {testLoadState ? "Loading..." : ""} </Text>
             </div>
             <FetchButton/>
             <div className="text-container">

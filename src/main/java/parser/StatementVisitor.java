@@ -32,21 +32,21 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
     }
     @Override
     public void visit(BlockStmt n, Node arg) {
+        System.out.println("From block statement" + n.getBegin().get().line + " to " + n.getEnd().get().line);
         n.getStatements().forEach(stmt -> {
 //            System.out.println(stmt.getBegin().get().line);
 //            if(!stmt.isIfStmt()) {
 //                System.out.println(stmt.getBegin().get().line);
 
-                if (stmt.isReturnStmt()) {
-                    isReturn = true;
-                    setPath(stmt.getBegin().get().line);
-                    returnLine = stmt.getBegin().get().line;
-                }else {
-                    setPath(stmt.getBegin().get().line);
-                }
-        });
+            if (stmt.isReturnStmt()) {
+                isReturn = true;
+                setPath(stmt.getBegin().get().line);
+                returnLine = stmt.getBegin().get().line;
+            } else {
+                setPath(stmt.getBegin().get().line);
+            }
 
-//        System.out.println(n.getStatements());
+        });
     }
 
     public void visit(IfStmt n, Node arg) {
@@ -56,7 +56,6 @@ public class StatementVisitor extends VoidVisitorAdapter<Node> {
         if(n.getElseStmt().isPresent()) {
             n.getElseStmt().get().accept(this, arg);
         }
-
     }
 
     public List<Integer> getPath() {
