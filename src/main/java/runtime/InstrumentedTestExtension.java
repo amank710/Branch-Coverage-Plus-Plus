@@ -90,7 +90,6 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             }
             System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
-//            TODO VariableMapBuilder should individually go through all method names
             for (String methodName : instrumentedMethodMapping.get(instClass.getName()))
             {
                 VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java", methodName);
