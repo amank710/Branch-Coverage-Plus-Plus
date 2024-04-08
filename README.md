@@ -35,7 +35,7 @@ project:
 ## Usage Instructions
 1. Prepare the source and test files
 
-    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called
+    1. We have prepared a sample source file and test file for your convenience in `resources/test_classes/` called
        `Demo.java` and `DemoTest.java` respectively. If you would like to use these files, skip the rest of this step.
     
         1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
@@ -83,7 +83,7 @@ project:
 1. Launch the backend
 
     1. Build the backend: `docker build --tag backend .`
-    1. Run the backend: `docker run -p 8000:8080 backend`
+    1. Run the backend: `docker run -p 8080:8080 backend`
     1. Wait for the following message to appear: `Started PathCoveragePlusplusApplication`
 
     **Note:** Please restart the backend between subsequent attempts to analyze code and test files.
