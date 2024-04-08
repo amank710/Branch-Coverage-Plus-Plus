@@ -64,7 +64,7 @@ class Demo
             if (a > 0 && b > 0)
             {
                 int d = a + b;
-                if ((a-d) != b)
+                if ((d-a) != b)
                 {
                     ret = -1;
                 }
