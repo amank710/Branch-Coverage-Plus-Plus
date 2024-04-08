@@ -110,10 +110,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             // Visit the 'then' part of the if statement.
 
             //TODO: This is trying to get the line numbers of the else statement
-            boolean temp = isPreviousIfElse;
-            isPreviousIfElse = false;
             n.getThenStmt().accept(this, arg);
-            isPreviousIfElse = temp;
 
         }
     }
@@ -145,8 +142,6 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
                 outerConditionalPath.push(new ArrayList<>(path));
                 pathList.add(path);
-
-
                 pathMap.put(ifLines, pathList);
                 paths.push(pathMap); // not executed after first
             } else {
@@ -155,11 +150,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
             //TODO: This is trying to get the line numbers of the else statement
             if(!elseStmt.isIfStmt()) {
-                boolean temp = isPreviousIfElse;
-                isPreviousIfElse = false;
-                isElseBlock = true;
                 elseStmt.accept(this, arg);
-                isPreviousIfElse = temp;
             }
 
         }
@@ -169,21 +160,18 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> newOuterConditionalMap = new HashMap<>();
         Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> outerConditional = paths.pop();
         ArrayList<Integer> key = new ArrayList<>(outerConditional.keySet()).get(0);
-
-        System.out.println("Key:" + key.get(0) + " vs " + key.get(1));
-        System.out.println("Key:" + beginLine + " vs " + endLine);
         System.out.println(key.get(0) < beginLine && key.get(1) > endLine);
 
         if (key.get(0) < beginLine && key.get(1) > endLine) {
             ArrayList<ArrayList<Integer>> pathList = outerConditional.get(key);
             int pathListSize = pathList.size();
-            System.out.println("139" + pathList);
 
             ArrayList<Integer> parentPath;
             if (!outerConditionalPath.isEmpty()) {
-                System.out.println("sss" + outerConditionalPath);
-                System.out.println(pathType);
-                parentPath = new ArrayList<>(pathType.equals("else") ? outerConditionalPath.pop() : outerConditionalPath.peek());
+                if(pathType.equals("else")) {
+                    System.out.println();
+                }
+                parentPath = new ArrayList<>(pathType.equals("else") ? outerConditionalPath.peek() : outerConditionalPath.peek());
                 System.out.println("178" + outerConditionalPath);
             } else {
                 parentPath = new ArrayList<>();
@@ -195,29 +183,13 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
                 }
             }
             ArrayList<Integer> currentPath = new ArrayList<>(pathList.get(pathListSize - 1));
-//            System.out.println("Current Path " + pathType + currentPath);
-            System.out.println("179" + currentPath);
-            System.out.println("179" + statementVisitor.getPath());
             for (int i = 0; i < statementVisitor.getPath().size(); i++) {
                 if(!currentPath.contains(statementVisitor.getPath().get(i))) {
                     currentPath.add(statementVisitor.getPath().get(i));
                 }
             }
-           // currentPath.addAll(statementVisitor.getPath());
-            System.out.println("Current Path " + pathType + currentPath);
-            System.out.println("Parent Path " + pathType + parentPath);
             boolean pathsMatch = isPathMatch(parentPath, currentPath, true); // false
-
-            System.out.println("Path Match" + pathsMatch);
             updateOuterConditional(pathsMatch, pathList, pathListSize, currentPath, parentPath, outerConditional, key);
-//
-//            if (statementVisitor.getSize() != 0) {
-//                updateOuterConditional(pathsMatch, pathList, pathListSize, currentPath, parentPath, outerConditional, key);
-//            }
-
-            System.out.println(statementVisitor.getSize());
-
-            System.out.println("outerConditional" + pathList);
             outerConditional.put(key, pathList);
         } else {
             // Branch specific to if or else based on pathType
@@ -252,7 +224,7 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
             outerConditionalPath.push(new ArrayList<>(pathList.get(pathListSize -1)));
         }  else {
             pathList.add(parentPath);
-            outerConditionalPath.push(new ArrayList<>(parentPath)); // [45, 19, 21, 28] not here
+            outerConditionalPath.push(new ArrayList<>(parentPath));
         }
         outerConditional.put(key, pathList);
     }
@@ -305,104 +277,105 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
     public void visit(IfStmt n, Node arg) {
         Expression thenCondition = n.getCondition();
         Expr thenCurrent = evaluateExpression(thenCondition, Map.copyOf(parameterSymbols), ctx);
+        Expression elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
+        Expr elseCurrent = evaluateExpression(elseCondition, Map.copyOf(parameterSymbols), ctx);
         Expr previous = null;
         boolean thenConditionResult = true;
         Solver solver = ctx.mkSolver();
         System.out.println("line:" + n.getBegin().get().line);
         System.out.println("is this else if" + isPreviousIfElse);
 
-        if (!previousConditions.isEmpty()) { // if there is a previous condition
+        if(outerConditionalPath.isEmpty()) {
+            isElseBlock = false;
+            previousConditions = new Stack<>();
+            solver.add((BoolExpr)  thenCurrent);
+            thenConditionResult = solver.check() == Status.SATISFIABLE;
+            previousConditions.push(thenCurrent);
+            solver.reset();
+        } else if (!previousConditions.isEmpty()) { // if there is a previous condition
             previous = previousConditions.peek();
             Expr localPrevious = previous;
             // Combine the current condition with the negation of the previous condition
             Expr combinedCondition = null;
-            if(isElseBlock) { // if inside else then we need to negate the previous condition
-                combinedCondition = ctx.mkAnd((BoolExpr)(BoolExpr) ctx.mkNot( localPrevious), (BoolExpr) thenCurrent);
-            } else { // if inside if then we need to combine the previous condition with the current condition
-                combinedCondition = ctx.mkAnd((BoolExpr) previous, (BoolExpr) thenCurrent);
-            }
-            System.out.println("combinedCondition;" + combinedCondition);
-            System.out.println(previousConditions);
+
+            combinedCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) thenCurrent);
+            elseCurrent = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) elseCurrent);
             solver.add((BoolExpr) combinedCondition);
             // Check if the combined condition is satisfiable
             if (solver.check() != Status.SATISFIABLE) { // if the combined condition is unsatisfiable
                 thenConditionResult = false;
-                System.out.println("unsatisfiable " + combinedCondition);
-                Expr updateCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) thenCurrent);
-                previousConditions.push(updateCondition);
-                previousConditionExpr = thenCurrent;
-            } else {
-                // If satisfiable, update the stack with the new combined condition for further checks
-                System.out.println("previous if " + previousConditions);
-                System.out.println("thenCurrent if " + combinedCondition);
-
-                Expr updateCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) ctx.mkNot((BoolExpr) thenCurrent));
-                previousConditions.push(updateCondition);
-                previousConditionExpr = thenCurrent;
             }
-
             solver.reset(); // Reset the solver for the next use
+
+            Expr updateCondition = ctx.mkAnd((BoolExpr) localPrevious, (BoolExpr) thenCurrent);
+            previousConditions.push(updateCondition);
         } else {
             // If there is no previous condition, just check the current condition alone
             solver.add((BoolExpr) thenCurrent);
             thenConditionResult = solver.check() == Status.SATISFIABLE;
             if (thenConditionResult) {
                 previousConditions.push(thenCurrent);
-                previousConditionExpr = thenCurrent;
             }
             solver.reset(); // Reset the solver for the next use
         }
 
-
-        Expression elseCondition = new UnaryExpr(n.getCondition(), UnaryExpr.Operator.LOGICAL_COMPLEMENT);
-        Expr elseCurrent = evaluateExpression(elseCondition, Map.copyOf(parameterSymbols), ctx);
-
-        if(previous != null) {
-            if(isElseBlock) {
-                elseCurrent = ctx.mkAnd((BoolExpr) ctx.mkNot((BoolExpr) previous), (BoolExpr) elseCurrent);
-            } else {
-                elseCurrent = ctx.mkAnd((BoolExpr) previous, (BoolExpr) elseCurrent);
-            }
-        } else {
-            elseCurrent = ctx.mkAnd((BoolExpr) ctx.mkNot((BoolExpr) thenCurrent), (BoolExpr) elseCurrent);
-        }
         solver.add((BoolExpr) elseCurrent);
         boolean elseConditionResult = solver.check() == Status.SATISFIABLE;
-        System.out.println("elseConditionResult : " + elseConditionResult);
-        System.out.println("elseCurrent" + elseCurrent);
         solver.reset();
-        System.out.println(n.getBegin().get().line);
-        System.out.println("thenConditionResult" + thenConditionResult);
-        System.out.println(thenCondition);
+        boolean temp = isElseBlock;
         isElseBlock = false;
         thenHelper(n, arg, thenConditionResult);
-
+        if(!previousConditions.isEmpty()) {
+            //remove then condition
+            previousConditions.pop();
+        }
 //        System.out.println("Step 6 Else Condition");
         // If an 'else' part exists, process it similarly.
         if(n.getElseStmt().isPresent()) {
+            System.out.println(thenConditionResult);
+            //why thenConditionResult needed to be checked
+            //needed for if if statemet is false, outerConditionalPath needs not to be popped so keep track of the parent range
             if(!outerConditionalPath.isEmpty() && thenConditionResult) {
                 outerConditionalPath.pop();
             }
+
+            //push the combined else condition to the previousConditions
+            previousConditions.push(elseCurrent);
+            isElseBlock = true;
             if(n.getElseStmt().get().isIfStmt()) {
                 System.out.println("Else If");
-                previousConditionExpr = ctx.mkNot((BoolExpr) thenCurrent);
-                isPreviousIfElse = true;
-                isElseBlock = true;
                 n.getElseStmt().get().accept(this, arg);
-                isPreviousIfElse = false;
             } else {
-                previousConditionExpr = ctx.mkNot((BoolExpr) thenCurrent);
                 System.out.println("outerConditionalPath" + paths   );
                 System.out.println("elseConditionResult" + elseConditionResult);
                 elseHelper(n, arg, elseConditionResult);
+                // when we leave pure else block, thats the end of the if block
+                //but if not satisfiable, we didnt push the outerConditionalPath so we dont need to pop
+                if(!outerConditionalPath.isEmpty() && elseConditionResult) {
+                    outerConditionalPath.pop();
+                }
+                if(!previousConditions.isEmpty()) {
+                    previousConditions.pop();
+                }
             }
+        } else {
+            //if there is no else block, pop the outerConditionalPath
+            if(!outerConditionalPath.isEmpty()) {
+                outerConditionalPath.pop();
+            }
+
+            if(!previousConditions.isEmpty()) {
+                previousConditions.pop();
+                }
         }
+        isElseBlock = temp;
 
 
         // Add the lines visited by the if statement to the visitedLine set to avoid overwriting the state
         for (int i = n.getBegin().get().line; i <= n.getEnd().get().line; i++) {
             visitedLine.add(i);
         }
+        
 
     }
 
