@@ -19,46 +19,79 @@ project:
 - The backend (spring-boot) needs to be restarted after each analysis
 
 ## Input Constraints
-- The source code file and test suite file must have the same `package` declaration or have no `package` declaration at all
+- The source code file and test suite file must have the same `package` declaration or have no `package` declaration at
+  all
 - The test file must only have dependencies to the source code file, standard Java library or our provided library
 - The source code file must only have dependencies to the standard Java library or our provided library
 - The test file must have at least one `@Test` method
-- Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the function of interest
+- Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the
+  function of interest
 - Each assertion in your test file must pass for the analysis to be successful
 
+## Dependencies
+- Docker
+- npm
+
 ## Usage Instructions
-1. Prepare the source file
+1. Prepare the source and test files
 
-    1. Make sure to include the following import:
-       ```java
-           import runtime.*;
-       ```
+    1. We have prepared a sample source file and test file for your convenience in `resources/test_classes/` called
+       `Demo.java` and `DemoTest.java` respectively. If you would like to use these files, skip the rest of this step.
+    
+        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line
+           10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only
+           two paths to test. Our test case will only test one of these possible branches, and we will show uncovered
+           lines in the other branch.
 
-    1. For all functions of interest in your source code, add the following annotation:
-       ```java
-            @Instrumentable
-            void foo()
-           {
-                ...
-           }
-       ```
+    1. Prepare the source file
+    
+        1. Make sure to include the following import:
+           ```java
+               import runtime.*;
+           ```
+    
+        1. For all functions of interest in your source code, add the following annotation:
+           ```java
+                @Instrumentable
+                void foo()
+               {
+                    ...
+               }
+           ```
 
-1. Prepare the test file
+    1. Prepare the test file
 
-    1. Make sure to include the following imports:
-       ```java
-          import runtime.*;
-          import org.junit.jupiter.api.extension.ExtendWith;
-       ```
-    1. Above the test class, add the following annotation:
-       ```java
-          @ExtendWith(InstrumentedTestExtension.class)
-       ```
-    1. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
-       functions in the specified class.
-        ```java
-          @Instrument(YourClass.class)
-        ```
+        1. Make sure to include the following imports:
+           ```java
+              import runtime.*;
+              import org.junit.jupiter.api.extension.ExtendWith;
+           ```
+        1. Above the test class, add the following annotation:
+           ```java
+              @ExtendWith(InstrumentedTestExtension.class)
+           ```
+        1. Above the test class, add an annotation for the class of interest. The analysis will identify Instrumentable
+           functions in the specified class.
+            ```java
+              @Instrument(YourClass.class)
+            ```
+
+    1. If you have a `package` declaration, then make sure that the test file has the same `package` declaration as
+       the source file. If you do not have a `package` declaration, then make sure that the test file does not have
+       a `package` declaration.
+
+1. Launch the backend
+
+    1. Build the backend: `docker build --tag backend .`
+    1. Run the backend: `docker run -p 8080:8080 backend`
+    1. Wait for the following message to appear: `Started PathCoveragePlusplusApplication`
+
+    **Note:** Please restart the backend between subsequent attempts to analyze code and test files.
+
+1. Launch the frontend
+    1. Navigate to the frontend directory: `cd frontend`
+    1. Install the dependencies: `npm install`
+    1. Start the frontend: `npm start`
 
 1. Upload the source file and test file to our website:
     1. To upload the source and test file, open `localhost:3000` in your browser.
@@ -70,7 +103,3 @@ project:
     1. In the tab `Uncovered Paths`, you will see specific sequences of paths that were not hit during the analysis.
     
     1. Using the right-hand navigation bar, in the `Chart` tab, you will see the frequency of how many times each line was hit.
-    
-    1. We have prepared a sample source file and test file for your convenience in `sandbox/test_classes/` called `Demo.java` and `DemoTest.java` respectively.
-    
-        1. In `Demo.foo`, we demonstrate our capability of filtering out unsatisfiable paths. The conditional on line 10 enforces `x >= 0`, so the conditionals on line 19 and 24 will always be satisfiable. Thus, there are only two paths to test. Our test case will only test one of these possible branches, and we will show uncovered lines in the other branch.
