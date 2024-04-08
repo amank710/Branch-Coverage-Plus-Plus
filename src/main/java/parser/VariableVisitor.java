@@ -56,8 +56,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
     private Expr previousConditionExpr;
 
-
-    public VariableVisitor(Node initialNode, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths) {
+    private String methodName;
+    public VariableVisitor(Node initialNode, Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths, String methodName) {
         this.initialNode = initialNode;
         this.z3Solver = new Z3Solver();
         conditionalBlocks = new ArrayList<>();
@@ -66,6 +66,8 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
         this.paths = paths;
         outerConditionalPath = new Stack<>();
         previousConditions = new Stack<>();
+
+        this.methodName = methodName;
     }
 
     public List<Integer> getReturnLines() {
@@ -545,21 +547,24 @@ public class VariableVisitor extends VoidVisitorAdapter<Node> {
 
     @Override
     public void visit(MethodDeclaration n, Node arg) {
-        ArrayList<Integer> lines = new ArrayList<Integer>();
-        n.getParameters().forEach(parameter -> {
-            String variableName = parameter.getNameAsString();
-            System.out.println("!!!!!!!!!" + variableName);
-            Sort paramSort = getTypeSort(parameter.getType(), ctx);
-            // Create a Z3 symbol for the parameter name
-            Symbol paramSymbol = ctx.mkSymbol(variableName);
-            // Create a Z3 constant (symbolic variable) for the parameter
-            Expr paramExpr = ctx.mkConst(paramSymbol, paramSort);
-            parameterSymbols.put(variableName, paramExpr);
-            int line = n.getBegin().get().line;
-            lines.add(line);
-//            previousNode = processNode(variableName, lines, previousNode);
-        });
-        n.getBody().ifPresent(body -> body.accept(this, arg));
+        if (Objects.equals(this.methodName, n.getNameAsString())) {
+            System.out.println("MethodName: " + n.getNameAsString());
+            ArrayList<Integer> lines = new ArrayList<Integer>();
+            n.getParameters().forEach(parameter -> {
+                String variableName = parameter.getNameAsString();
+                System.out.println("!!!!!!!!!" + variableName);
+                Sort paramSort = getTypeSort(parameter.getType(), ctx);
+                // Create a Z3 symbol for the parameter name
+                Symbol paramSymbol = ctx.mkSymbol(variableName);
+                // Create a Z3 constant (symbolic variable) for the parameter
+                Expr paramExpr = ctx.mkConst(paramSymbol, paramSort);
+                parameterSymbols.put(variableName, paramExpr);
+                int line = n.getBegin().get().line;
+                lines.add(line);
+    //            previousNode = processNode(variableName, lines, previousNode);
+            });
+            n.getBody().ifPresent(body -> body.accept(this, arg));
+        }
     }
 
     private static Sort getTypeSort(com.github.javaparser.ast.type.Type type, Context ctx) {

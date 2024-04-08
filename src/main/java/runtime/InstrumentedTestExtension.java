@@ -72,7 +72,6 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             throw e;
         }
 
-        Map<String, Map<String, Tuple<Integer, Integer>>> methodBounds = codeStepper.getMethodBounds();
         for (Class<?> instClass : instClasses)
         {
             URL location = instClass.getProtectionDomain().getCodeSource().getLocation();
@@ -91,10 +90,12 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             }
             System.out.println("[InstrumentedTestExtension]: Found source code at " + path);
 
-            VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java");
-            variableMapBuilder.build();
-
-            processStaticAnalysis(variableMapBuilder.getPath(), instClass.getName(), methodBounds);
+            for (String methodName : instrumentedMethodMapping.get(instClass.getName()))
+            {
+                VariableMapBuilder variableMapBuilder = new VariableMapBuilder(path, instClass.getName().replace(".", "/") + ".java", methodName);
+                variableMapBuilder.build();
+                processStaticAnalysis(variableMapBuilder.getPath(), instClass.getName(), methodName);
+            }
         }
     }
 
@@ -232,6 +233,23 @@ public class InstrumentedTestExtension implements AfterAllCallback, AfterEachCal
             throw e;
         }
     }
+
+    void processStaticAnalysis(Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> > path, String className, String methodName)
+    {
+        Set<List<Integer>> localPathRep = convertToLocalPathRep(path);
+        System.out.println("[InstrumentedTestExtension]: Local path representation for " + className + ": " + localPathRep);
+
+        Set<List<Integer>> methodPaths = new HashSet<>();
+        for (List<Integer> localPath : localPathRep)
+        {
+            List<Integer> pathCopy = localPath;
+            Collections.sort(pathCopy);
+
+            methodPaths.add(pathCopy);
+        }
+        satisfiablePaths.put(methodName, methodPaths);
+    }
+
 
     void processStaticAnalysis(Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>> > path, String className, Map<String, Map<String, Tuple<Integer, Integer>>> classToMethodBounds)
     {

@@ -15,18 +15,21 @@ public class VariableMapBuilder {
     private Node variableMapRoot;
     private String fileName;
 
+    private String methodName;
+
     private Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths;
 
-    public VariableMapBuilder(String sourcePath, String fileName) {
+    public VariableMapBuilder(String sourcePath, String fileName, String methodName) {
         this.sourceRoot = new SourceRoot(Paths.get(sourcePath));
         this.variableMapRoot = new StateNode();
         this.fileName = fileName;
+        this.methodName = methodName;
     }
     public Node build() {
         try {
             CompilationUnit cu = sourceRoot.parse("", fileName);
             Stack<Map<ArrayList<Integer>, ArrayList<ArrayList<Integer>>>> paths = new Stack<>();
-            VariableVisitor variableVisitor = new VariableVisitor(this.variableMapRoot, paths);
+            VariableVisitor variableVisitor = new VariableVisitor(this.variableMapRoot, paths, this.methodName);
             cu.accept(variableVisitor, null);
 
 
