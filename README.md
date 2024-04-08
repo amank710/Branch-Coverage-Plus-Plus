@@ -9,7 +9,7 @@ project:
 - Identifes unsatisfiable branches through your code with variable-tracking and filter these paths out from
   analysis
 - Calculates the branch coverage of your test suite
-- Visualizes the line hit coverage and uncovered paths in your code
+- Visualizes the line hit coverage and uncovered branch paths in your code
 
 ## Limitations
 - Loop tracking isn't supported
@@ -27,6 +27,14 @@ project:
 - Each `@Test` method must only call the function of interest at-most once. Multiple `@Test` methods can call the
   function of interest
 - Each assertion in your test file must pass for the analysis to be successful
+
+## Design Decision + User Study Feedback
+- Our feedback from User Study 1 was that having a UI for a project like this would be very helpful as this would make the tool a lot more user-friendly
+- This now meant we had a Static Analysis, Dynamic Execution and UI component. 
+- Due to the time constraint, we had to choose between implementing full path coverage or implementing a more complete static analysis by using symbolic execution.
+- We asked this question to the developer helping us with User Story 2. 
+- They liked the idea of pruned path coverage but admitted that achieving any path coverage is unrealistic
+- Having a more concrete static analysis with symbolic execution to track variables made more sense to them
 
 ## Dependencies
 - Docker
